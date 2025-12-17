@@ -10,10 +10,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Send } from "lucide-react";
 import { siteConfig } from "@/lib/config";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SAUDI_CITIES } from "@/lib/data";
 
 const formSchema = z.object({
   name: z.string().min(2, "الاسم يجب أن يكون حرفين على الأقل."),
   phone: z.string().min(10, "رقم الهاتف يجب أن يكون 10 أرقام على الأقل."),
+  city: z.string({required_error: "الرجاء اختيار مدينة."}),
   address: z.string().min(10, "العنوان يجب أن يكون 10 أحرف على الأقل."),
 });
 
@@ -29,7 +32,7 @@ export default function ContactPage() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const message = `طلب جديد:\n\nالاسم: ${values.name}\nرقم الهاتف: ${values.phone}\n\nالعنوان:\n${values.address}`;
+    const message = `طلب جديد:\n\nالاسم: ${values.name}\nرقم الهاتف: ${values.phone}\nالمدينة: ${values.city}\n\nالعنوان:\n${values.address}`;
     const whatsappUrl = `https://wa.me/${siteConfig.contact.phone}?text=${encodeURIComponent(message)}`;
     
     window.open(whatsappUrl, '_blank');
@@ -88,12 +91,34 @@ export default function ContactPage() {
               />
               <FormField
                 control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>المدينة</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر مدينتك" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {SAUDI_CITIES.map(city => (
+                          <SelectItem key={city} value={city}>{city}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>العنوان</FormLabel>
+                    <FormLabel>تفاصيل العنوان</FormLabel>
                     <FormControl>
-                      <Input placeholder="اكتب عنوانك هنا..." {...field} />
+                      <Input placeholder="اكتب اسم الشارع والحي هنا..." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

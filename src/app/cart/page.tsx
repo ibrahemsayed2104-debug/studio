@@ -12,6 +12,8 @@ import Link from 'next/link';
 import { ShoppingCart, Wallet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { siteConfig } from '@/lib/config';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SAUDI_CITIES } from '@/lib/data';
 
 
 export default function CheckoutPage() {
@@ -107,7 +109,16 @@ export default function CheckoutPage() {
                 <div className="grid sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="city">المدينة</Label>
-                    <Input id="city" name="city" required placeholder="الرياض" />
+                    <Select name="city" required>
+                      <SelectTrigger id="city">
+                        <SelectValue placeholder="اختر مدينة" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SAUDI_CITIES.map(city => (
+                          <SelectItem key={city} value={city}>{city}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="postal-code">الرمز البريدي</Label>
@@ -115,7 +126,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="country">الدولة</Label>
-                    <Input id="country" name="country" required defaultValue="المملكة العربية السعودية" />
+                    <Input id="country" name="country" required readOnly value="المملكة العربية السعودية" />
                   </div>
                 </div>
               </div>
