@@ -55,8 +55,8 @@ const virtualCurtainMockupFlow = ai.defineFlow(
     outputSchema: VirtualCurtainMockupOutputSchema,
   },
   async input => {
-    const {output} = await ai.generate({
-      model: 'googleai/gemini-pro-vision',
+    const {media} = await ai.generate({
+      model: 'googleai/gemini-2.5-flash-image-preview',
       prompt: [
         dataUriToMediaPart(input.roomImage),
         {
@@ -65,10 +65,14 @@ const virtualCurtainMockupFlow = ai.defineFlow(
         dataUriToMediaPart(input.curtainImage),
       ],
       config: {
-        responseModalities: ['IMAGE'],
+        responseModalities: ['TEXT', 'IMAGE'],
       },
     });
-    const {media} = output as any;
-    return {mockupImage: media.url!};
+    
+    if (!media?.url) {
+      throw new Error("لم يتمكن الذكاء الاصطناعي من إنشاء الصورة.");
+    }
+    
+    return {mockupImage: media.url};
   }
 );
