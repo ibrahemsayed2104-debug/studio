@@ -15,12 +15,12 @@ const VirtualCurtainMockupInputSchema = z.object({
   roomImage: z
     .string()
     .describe(
-      'A photo of the room, as a data URI that must include a MIME type and use Base64 encoding. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.' // Corrected typo here
+      'A photo of the room, as a data URI that must include a MIME type and use Base64 encoding. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.'
     ),
   curtainImage: z
     .string()
     .describe(
-      'A photo of the curtain, as a data URI that must include a MIME type and use Base64 encoding. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.' // Corrected typo here
+      'A photo of the curtain, as a data URI that must include a MIME type and use Base64 encoding. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.'
     ),
 });
 export type VirtualCurtainMockupInput = z.infer<typeof VirtualCurtainMockupInputSchema>;
@@ -55,7 +55,7 @@ const prompt = ai.definePrompt({
   ],
   model: 'googleai/gemini-2.5-flash-image-preview',
   config: {
-    responseModalities: ['TEXT', 'IMAGE'],
+    responseModalities: ['IMAGE'],
   },
 });
 
@@ -66,15 +66,7 @@ const virtualCurtainMockupFlow = ai.defineFlow(
     outputSchema: VirtualCurtainMockupOutputSchema,
   },
   async input => {
-    const {media} = await ai.generate(prompt, {
-      prompt: [
-        {media: {url: input.roomImage}},
-        {
-          text: 'Visualize how these curtains would look in the room, and generate an image of the room with the curtains in place. Use the curtain image as reference for the style, color and material of the curtains. Make sure the lighting and shadows match the room.',
-        },
-        {media: {url: input.curtainImage}},
-      ],
-    });
-    return {mockupImage: media!.url!};
+    const {output} = await prompt(input);
+    return {mockupImage: output?.mockupImage!};
   }
 );
