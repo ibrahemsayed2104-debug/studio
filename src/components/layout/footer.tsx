@@ -43,7 +43,7 @@ export function Footer() {
             <ul className="mt-4 space-y-3">
               <li className="flex items-start">
                 <MapPin className="h-5 w-5 shrink-0 text-primary mt-0.5" />
-                <span className="ms-3 text-sm">{siteConfig.contact.address}</span>
+                <a href={siteConfig.contact.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="ms-3 text-sm hover:text-primary transition-colors">{siteConfig.contact.address}</a>
               </li>
               <li className="flex items-center">
                 <Phone className="h-5 w-5 shrink-0 text-primary" />
