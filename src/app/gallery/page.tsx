@@ -9,41 +9,12 @@ import { galleryImages } from '@/lib/gallery-images';
 const IMAGE_WIDTH = 800;
 const IMAGE_HEIGHT = 1000;
 
-interface GalleryImage {
-  id: string;
-  url: string;
-  hint: string;
-}
-
 const categories = [
   { id: 'classic', name: 'كلاسيك', images: galleryImages.classic },
   { id: 'roman', name: 'روماني', images: galleryImages.roman },
   { id: 'hotel', name: 'فندقية', images: galleryImages.hotel },
   { id: 'modern', name: 'مودرن', images: galleryImages.modern },
 ];
-
-function GalleryCategory({ images, categoryName }: { images: GalleryImage[], categoryName: string }) {
-  return (
-    <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-      {images.map(image => (
-        <div key={image.id} className="break-inside-avoid">
-          <div className="relative w-full rounded-lg overflow-hidden shadow-lg group border transition-all duration-300 hover:shadow-2xl hover:scale-105">
-            <Image
-              src={image.url}
-              alt={`${categoryName} curtain design ${image.id}`}
-              width={IMAGE_WIDTH}
-              height={IMAGE_HEIGHT}
-              className="object-cover w-full h-auto"
-              priority={images.indexOf(image) < 8}
-              data-ai-hint={image.hint}
-            />
-            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export default function GalleryPage() {
   return (
@@ -69,7 +40,24 @@ export default function GalleryPage() {
 
         {categories.map(category => (
           <TabsContent key={category.id} value={category.id}>
-            <GalleryCategory images={category.images} categoryName={category.name} />
+            <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+              {category.images.map((image, index) => (
+                <div key={image.id} className="break-inside-avoid">
+                  <div className="relative w-full rounded-lg overflow-hidden shadow-lg group border transition-all duration-300 hover:shadow-2xl hover:scale-105">
+                    <Image
+                      src={image.url}
+                      alt={`${category.name} curtain design ${image.id}`}
+                      width={IMAGE_WIDTH}
+                      height={IMAGE_HEIGHT}
+                      className="object-cover w-full h-auto"
+                      priority={index < 8}
+                      data-ai-hint={image.hint}
+                    />
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </TabsContent>
         ))}
       </Tabs>
