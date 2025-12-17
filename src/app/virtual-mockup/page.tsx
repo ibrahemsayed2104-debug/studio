@@ -1,5 +1,13 @@
 import { VirtualMockupTool } from '@/components/virtual-mockup-tool';
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+};
+
 export default function VirtualMockupPage() {
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8 md:py-12">
