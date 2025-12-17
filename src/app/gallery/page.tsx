@@ -50,7 +50,8 @@ export default function GalleryPage() {
                       width={IMAGE_WIDTH}
                       height={IMAGE_HEIGHT}
                       className="object-cover w-full h-auto"
-                      priority={index < 8}
+                      priority={index < 4}
+                      loading={index < 4 ? 'eager' : 'lazy'}
                       data-ai-hint={image.hint}
                     />
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
