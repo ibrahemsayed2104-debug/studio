@@ -1,6 +1,6 @@
 
 export const siteConfig = {
-  name: "fabrics",
+  name: "StarTak",
   description: "محل ستائر فاخرة وتصميمات مخصصة.",
   contact: {
     phone: "201111148566",
