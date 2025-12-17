@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, ShoppingCart, GalleryVertical, Home, Package, Smartphone, Users, Phone } from 'lucide-react';
+import { Menu, ShoppingCart, GalleryVertical, Home, Package, Smartphone, Users, Phone, MapPin } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -49,6 +49,12 @@ export function Header() {
                 </Link>
               </Button>
             ))}
+             <Button variant="ghost" asChild className="text-foreground/80 hover:text-primary">
+              <Link href={siteConfig.contact.googleMapsUrl} target="_blank" rel="noopener noreferrer">
+                <MapPin className="ms-2 h-4 w-4" />
+                الموقع
+              </Link>
+            </Button>
           </nav>
           
           <div className="flex items-center gap-2">
@@ -94,6 +100,15 @@ export function Header() {
                       {link.label}
                     </Link>
                   ))}
+                  <Link
+                      href={siteConfig.contact.googleMapsUrl}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className='text-lg text-foreground/60 transition-colors hover:text-foreground/80 flex items-center gap-3'
+                    >
+                      <MapPin className="h-5 w-5" />
+                      الموقع
+                    </Link>
                 </div>
               </SheetContent>
             </Sheet>
