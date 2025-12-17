@@ -57,6 +57,15 @@ export default function CheckoutPage() {
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
     
+    if (!data.city) {
+        toast({
+            variant: "destructive",
+            title: "خطأ في الإدخال",
+            description: "الرجاء اختيار مدينة.",
+        });
+        return;
+    }
+
     const orderId = `order_${Date.now()}`;
 
     // Construct WhatsApp message
@@ -66,7 +75,7 @@ export default function CheckoutPage() {
     message += `الاسم: ${data.name}\n`;
     message += `رقم الهاتف: ${data.phone}\n`;
     
-    let fullAddress = `${data.address}, ${selectedCity}`;
+    let fullAddress = `${data.address}, ${data.city}`;
     if (selectedCountry === 'مصر' && data.governorate) {
         fullAddress += `, ${data.governorate}`;
     }
@@ -184,6 +193,7 @@ export default function CheckoutPage() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="city">المدينة</Label>
+                    <input type="hidden" name="city" value={selectedCity} />
                     <Popover open={cityPopoverOpen} onOpenChange={setCityPopoverOpen}>
                         <PopoverTrigger asChild>
                             <Button
@@ -193,7 +203,7 @@ export default function CheckoutPage() {
                             className="w-full justify-between"
                             disabled={cities.length === 0}
                             >
-                            {selectedCity ? cities.find((city) => city === selectedCity) : "اختر مدينة..."}
+                            {selectedCity || "اختر مدينة..."}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                         </PopoverTrigger>
@@ -207,7 +217,7 @@ export default function CheckoutPage() {
                                     key={city}
                                     value={city}
                                     onSelect={(currentValue) => {
-                                      setSelectedCity(currentValue === selectedCity ? "" : currentValue)
+                                      setSelectedCity(currentValue === selectedCity ? "" : city)
                                       setCityPopoverOpen(false)
                                     }}
                                 >
