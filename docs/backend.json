@@ -23,9 +23,13 @@
           "type": "string",
           "format": "uri",
           "description": "URL of the user's profile picture."
+        },
+        "phoneNumber": {
+            "type": "string",
+            "description": "The user's phone number."
         }
       },
-      "required": ["uid", "email"]
+      "required": ["uid"]
     },
     "Order": {
       "title": "Order",
@@ -162,7 +166,8 @@
   },
   "auth": {
     "providers": [
-      "google.com"
+      "google.com",
+      "phone"
     ]
   },
   "firestore": {
