@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { CreditCard, ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Wallet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -18,13 +18,39 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // In a real app, you would process the payment here.
-    toast({
-      title: "تم تقديم الطلب بنجاح!",
-      description: "شكراً لك على التسوق معنا.",
+    
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+
+    let message = `*طلب جديد من Fabric*\n\n`;
+    message += `*معلومات العميل:*\n`;
+    message += `الاسم: ${data.name}\n`;
+    message += `البريد الإلكتروني: ${data.email}\n`;
+    message += `العنوان: ${data.address}, ${data.city}, ${data['postal-code']}\n\n`;
+    
+    message += `*المنتجات المطلوبة:*\n`;
+    cartItems.forEach(item => {
+      message += `--------------------\n`;
+      message += `المنتج: ${item.product.name}\n`;
+      message += `الكمية: ${item.quantity}\n`;
+      message += `التخصيص: ${item.customization.fabric}, ${item.customization.size}, ${item.customization.color}, ${item.customization.style}\n`;
     });
+    message += `--------------------\n`;
+    message += `*إجمالي عدد المنتجات:* ${itemCount}\n\n`;
+    message += `*طريقة الدفع:* الدفع عند الاستلام (كاش)`;
+
+    const phoneWhatsApp = "201111148566"; // Your WhatsApp number
+    const whatsappUrl = `https://wa.me/${phoneWhatsApp}?text=${encodeURIComponent(message)}`;
+    
+    window.open(whatsappUrl, '_blank');
+
+    toast({
+      title: "تم توجيهك إلى واتساب!",
+      description: "أرسل الرسالة لتأكيد طلبك.",
+    });
+
     clearCart();
     router.push('/order-success');
   };
@@ -64,11 +90,11 @@ export default function CheckoutPage() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">الاسم الكامل</Label>
-                    <Input id="name" required placeholder="مثال: محمد الأحمد" />
+                    <Input id="name" name="name" required placeholder="مثال: محمد الأحمد" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">البريد الإلكتروني</Label>
-                    <Input id="email" type="email" required placeholder="email@example.com" />
+                    <Input id="email" name="email" type="email" required placeholder="email@example.com" />
                   </div>
                 </div>
               </div>
@@ -76,41 +102,31 @@ export default function CheckoutPage() {
                 <h3 className="font-medium text-lg">عنوان الشحن</h3>
                 <div className="space-y-2">
                   <Label htmlFor="address">العنوان</Label>
-                  <Input id="address" required placeholder="123 شارع الملك فهد" />
+                  <Input id="address" name="address" required placeholder="123 شارع الملك فهد" />
                 </div>
                 <div className="grid sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="city">المدينة</Label>
-                    <Input id="city" required placeholder="الرياض" />
+                    <Input id="city" name="city" required placeholder="الرياض" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="postal-code">الرمز البريدي</Label>
-                    <Input id="postal-code" required placeholder="12345" />
+                    <Input id="postal-code" name="postal-code" required placeholder="12345" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="country">الدولة</Label>
-                    <Input id="country" required defaultValue="المملكة العربية السعودية" />
+                    <Input id="country" name="country" required defaultValue="المملكة العربية السعودية" />
                   </div>
                 </div>
               </div>
               <div className="space-y-4">
-                <h3 className="font-medium text-lg">معلومات الدفع</h3>
-                <div className="space-y-2">
-                  <Label htmlFor="card-number">رقم البطاقة</Label>
-                  <div className="relative">
-                    <Input id="card-number" required placeholder="**** **** **** 1234" />
-                    <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  </div>
-                </div>
-                <div className="grid sm:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="expiry-date">تاريخ الانتهاء</Label>
-                    <Input id="expiry-date" required placeholder="MM/YY" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="cvc">CVC</Label>
-                    <Input id="cvc" required placeholder="123" />
-                  </div>
+                <h3 className="font-medium text-lg">طريقة الدفع</h3>
+                <div className="border rounded-md p-4 flex items-center gap-4 bg-muted/30">
+                    <Wallet className="h-8 w-8 text-primary"/>
+                    <div>
+                        <p className="font-semibold">الدفع عند الاستلام</p>
+                        <p className="text-sm text-muted-foreground">ادفع نقدًا عند وصول طلبك.</p>
+                    </div>
                 </div>
               </div>
             </CardContent>
@@ -142,7 +158,7 @@ export default function CheckoutPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" size="lg" className="w-full font-bold">تأكيد الطلب</Button>
+              <Button type="submit" size="lg" className="w-full font-bold">تأكيد الطلب وإرسال عبر واتساب</Button>
             </CardFooter>
           </Card>
         </div>
