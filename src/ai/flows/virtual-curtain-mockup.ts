@@ -44,13 +44,13 @@ const prompt = ai.definePrompt({
   output: {schema: VirtualCurtainMockupOutputSchema},
   prompt: [
     {
-      media: {url: '{{{roomImage}}}'},
+      media: {url: '{{roomImage}}'},
     },
     {
       text: 'Visualize how these curtains would look in the room, and generate an image of the room with the curtains in place. Use the curtain image as reference for the style, color and material of the curtains. Make sure the lighting and shadows match the room.',
     },
     {
-      media: {url: '{{{curtainImage}}}'},
+      media: {url: '{{curtainImage}}'},
     },
   ],
   model: 'googleai/gemini-2.5-flash-image-preview',
