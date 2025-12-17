@@ -19,7 +19,7 @@ const categories = [
   { id: 'classic', name: 'كلاسيك', images: galleryImages.classic },
   { id: 'roman', name: 'روماني', images: galleryImages.roman },
   { id: 'hotel', name: 'فندقية', images: galleryImages.hotel },
-  { id: 'office', name: 'مكاتب', images: galleryImages.office },
+  { id: 'modern', name: 'مودرن', images: galleryImages.modern },
 ];
 
 function GalleryCategory({ images, categoryName }: { images: GalleryImage[], categoryName: string }) {
