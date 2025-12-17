@@ -5,7 +5,6 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +13,7 @@ import { Send } from "lucide-react";
 const formSchema = z.object({
   name: z.string().min(2, "الاسم يجب أن يكون حرفين على الأقل."),
   phone: z.string().min(10, "رقم الهاتف يجب أن يكون 10 أرقام على الأقل."),
-  message: z.string().min(10, "الرسالة يجب أن تكون 10 أحرف على الأقل."),
+  address: z.string().min(10, "العنوان يجب أن يكون 10 أحرف على الأقل."),
 });
 
 export default function ContactPage() {
@@ -24,13 +23,13 @@ export default function ContactPage() {
     defaultValues: {
       name: "",
       phone: "",
-      message: "",
+      address: "",
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const phoneWhatsApp = "9661111148566"; // Your WhatsApp number with country code, without + or 00
-    const message = `مرحبًا،\n\nلدي استفسار من:\nالاسم: ${values.name}\nرقم الهاتف: ${values.phone}\n\nالرسالة:\n${values.message}`;
+    const message = `طلب جديد:\n\nالاسم: ${values.name}\nرقم الهاتف: ${values.phone}\n\nالعنوان:\n${values.address}`;
     const whatsappUrl = `https://wa.me/${phoneWhatsApp}?text=${encodeURIComponent(message)}`;
     
     window.open(whatsappUrl, '_blank');
@@ -89,12 +88,12 @@ export default function ContactPage() {
               />
               <FormField
                 control={form.control}
-                name="message"
+                name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>رسالتك</FormLabel>
+                    <FormLabel>العنوان</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="اكتب رسالتك هنا..." className="min-h-[150px]" {...field} />
+                      <Input placeholder="اكتب عنوانك هنا..." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -102,7 +101,7 @@ export default function ContactPage() {
               />
               <Button type="submit" className="w-full font-bold" size="lg">
                 <Send className="ms-2 h-4 w-4" />
-                إرسال الرسالة عبر واتساب
+                إرسال الطلب عبر واتساب
               </Button>
             </form>
           </Form>
