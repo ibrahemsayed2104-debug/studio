@@ -13,7 +13,7 @@ export const galleryImages = {
     { id: 'ro-4', url: 'https://i.pinimg.com/736x/46/5f/da/465fda72748cefa82b432be00d7e860c.jpg', hint: 'kitchen window' },
   ],
   hotel: [
-    { id: 'ho-1', url: 'https://images.unsplash.com/photo-1566642844242-32947135a420?w=800&q=80', hint: 'hotel curtain' },
+    { id: 'ho-1', url: 'https://vid.alarabiya.net/images/2017/11/12/243ca2ec-850c-4f55-a748-42f17f9432c6/243ca2ec-850c-4f55-a748-42f17f9432c6.jpg', hint: 'hotel curtain' },
     { id: 'ho-2', url: 'https://images.unsplash.com/photo-1549294413-26f195200c16?w=800&q=80', hint: 'hotel room' },
     { id: 'ho-3', url: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80', hint: 'luxury hotel' },
     { id: 'ho-4', url: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=800&q=80', hint: 'blackout curtain' },

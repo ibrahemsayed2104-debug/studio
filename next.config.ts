@@ -127,6 +127,12 @@ const nextConfig: NextConfig = {
         hostname: 'files.lahlooba.net',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'vid.alarabiya.net',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
