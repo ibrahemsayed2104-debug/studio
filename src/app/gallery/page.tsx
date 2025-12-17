@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { GalleryVertical, X } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { galleryImages } from '@/lib/gallery-images';
-import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
 const categories = [
@@ -70,6 +70,7 @@ export default function GalleryPage() {
 
       <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
         <DialogContent className="max-w-5xl h-[90vh] p-2 sm:p-4 bg-transparent border-0 shadow-none flex items-center justify-center">
+            <DialogTitle className="sr-only">عرض مكبر للصورة</DialogTitle>
             <div className="relative w-full h-full">
                 {selectedImage && (
                     <Image
