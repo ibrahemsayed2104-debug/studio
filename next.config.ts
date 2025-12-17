@@ -115,6 +115,18 @@ const nextConfig: NextConfig = {
         hostname: 'img.youm7.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.aljazeeracoonline.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'files.lahlooba.net',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

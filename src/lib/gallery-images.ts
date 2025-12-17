@@ -7,10 +7,10 @@ export const galleryImages = {
     { id: 'cl-4', url: 'https://i.pinimg.com/564x/0f/cf/58/0fcf58631b6b57ded803a60a7479717b.jpg', hint: 'vintage curtain' },
   ],
   roman: [
-    { id: 'ro-1', url: 'https://i.pinimg.com/564x/40/e3/86/40e38600d720a2d364860b73c4f74d43.jpg', hint: 'roman shade' },
-    { id: 'ro-2', url: 'https://i.pinimg.com/564x/0b/b7/c1/0bb7c17d7e3a9c7b9499d3633e9b1062.jpg', hint: 'window blind' },
-    { id: 'ro-3', url: 'https://i.pinimg.com/564x/e7/0d/16/e70d164535b376c33c3f3f04499d3758.jpg', hint: 'linen blind' },
-    { id: 'ro-4', url: 'https://i.pinimg.com/564x/f4/f7/a9/f4f7a934335c0293149d5a9d6174a72d.jpg', hint: 'kitchen window' },
+    { id: 'ro-1', url: 'https://sadafaldar.com/wp-content/uploads/2022/08/%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-%D8%B1%D9%88%D9%85%D8%A7%D9%86%D9%8A-%D8%B5%D8%AF%D9%81-%D8%A7%D9%84%D8%AF%D8%A7%D8%B1-%D9%84%D9%84%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-4.jpeg', hint: 'roman shade' },
+    { id: 'ro-2', url: 'https://www.aljazeeracoonline.com/wp-content/uploads/2024/07/%D8%B1%D9%88%D9%85%D8%A7%D9%86%D9%8A-1024x1024.webp', hint: 'window blind' },
+    { id: 'ro-3', url: 'http://files.lahlooba.net/2012/05/180/7.jpg', hint: 'elegant roman' },
+    { id: 'ro-4', url: 'https://i.pinimg.com/736x/46/5f/da/465fda72748cefa82b432be00d7e860c.jpg', hint: 'kitchen window' },
   ],
   hotel: [
     { id: 'ho-1', url: 'https://images.unsplash.com/photo-1566642844242-32947135a420?w=800&q=80', hint: 'hotel curtain' },
