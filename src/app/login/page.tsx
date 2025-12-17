@@ -177,7 +177,7 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <Label htmlFor="phone">رقم الهاتف</Label>
                   <div className="flex gap-2">
-                     <Select value={countryCode} onValueChange={setCountryCode}>
+                     <Select defaultValue={countryCode} onValueChange={setCountryCode}>
                         <SelectTrigger className="w-[120px]">
                             <SelectValue />
                         </SelectTrigger>
