@@ -22,6 +22,7 @@ export default function GalleryPage() {
           <h1 className="text-4xl md:text-5xl font-headline font-bold text-foreground">
             معرض الصور
           </h1>
+        </div>
         <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
           استكشف أحدث التصاميم والإلهامات من مجموعاتنا المختارة حسب الفئة.
         </p>
@@ -49,7 +50,6 @@ export default function GalleryPage() {
                       priority={index < 4}
                       loading={index < 4 ? 'eager' : 'lazy'}
                       data-ai-hint={image.hint}
-                      unoptimized={false}
                     />
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
