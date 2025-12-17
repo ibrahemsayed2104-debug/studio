@@ -80,6 +80,18 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'i.ytimg.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'sadafaldar.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

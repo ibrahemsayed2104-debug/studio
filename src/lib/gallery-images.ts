@@ -1,15 +1,10 @@
 
 export const galleryImages = {
   classic: [
-    { id: 'cl-1', url: 'https://images.unsplash.com/photo-1613854992525-0b043534d026?w=800&q=80', hint: 'classic curtain' },
-    { id: 'cl-2', url: 'https://images.unsplash.com/photo-1550939542-d355a4356a6a?w=800&q=80', hint: 'elegant drape' },
-    { id: 'cl-3', url: 'https://images.unsplash.com/photo-1617103282434-601997a3a8a3?w=800&q=80', hint: 'luxury curtain' },
-    { id: 'cl-4', url: 'https://images.unsplash.com/photo-1596701836154-47f99710329c?w=800&q=80', hint: 'vintage curtain' },
-    { id: 'cl-5', url: 'https://images.unsplash.com/photo-1595265010264-c15786ca6c5a?w=800&q=80', hint: 'burgundy curtain' },
-    { id: 'cl-6', url: 'https://images.unsplash.com/photo-1616047006789-b7af5afb8c20?w=800&q=80', hint: 'interior design' },
-    { id: 'cl-7', url: 'https://images.unsplash.com/photo-1615875617238-256155694276?w=800&q=80', hint: 'living room' },
-    { id: 'cl-8', url: 'https://images.unsplash.com/photo-1588854337236-6889d631f379?w=800&q=80', hint: 'bedroom curtain' },
-    { id: 'cl-9', url: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=800&q=80', hint: 'home decor' },
+    { id: 'cl-1', url: 'https://i.ytimg.com/vi/jQtc3637K04/maxresdefault.jpg', hint: 'classic curtain' },
+    { id: 'cl-2', url: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjhL7DBnI6lU7PjpoLNFHYvHjV07YAeNZTtNNiN6QQfi6ZI2_SdRmrFlYVnIqWGCrutGbvGww4zDjlh-39EBun8g_g2Mv0Ig3BJgSN6tA4tuoASKtRGMdl0mvklqbrpQYh4AU5sXgOQbDie1aPLlHmpdJJDsCQ2im0YVpJWV5ObD3lRKzDZeNJH6AzyEA/w640-h480/%D9%83%D8%AA%D8%A7%D9%84%D9%88%D8%AC%D8%A7%D8%AA%20%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1%20(3).jpg', hint: 'elegant drape' },
+    { id: 'cl-3', url: 'https://sadafaldar.com/wp-content/uploads/2022/08/%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-%D8%B4%D8%B1%D9%8A%D8%B7%D9%8A%D8%A9-%D8%B5%D8%AF%D9%81-%D8%A7%D9%84%D8%AF%D8%A7%D8%B1-%D9%84%D9%84%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-2-953x1024.jpeg', hint: 'luxury curtain' },
+    { id: 'cl-4', url: 'https://sadafaldar.com/wp-content/uploads/elementor/thumbs/%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-%D8%B4%D8%B1%D9%8A%D8%B7%D9%8A%D8%A9-%D8%B5%D8%AF%D9%81-%D8%A7%D9%84%D8%AF%D8%A7%D8%B1-%D9%84%D9%84%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-3-pt1wv8wsblvrwcpw28u0s00o8h9ad0olh74gwrq0hs.jpeg', hint: 'vintage curtain' },
   ],
   roman: [
     { id: 'ro-1', url: 'https://api.sedarglobal.com/uploads/100001/lifestyle/1682938874_f65bf49e744ce9c2ab05.webp?imwidth=1920', hint: 'roman shade' },
