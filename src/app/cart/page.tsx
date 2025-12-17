@@ -28,7 +28,7 @@ export default function CheckoutPage() {
     let message = `*طلب جديد من ${siteConfig.name}*\n\n`;
     message += `*معلومات العميل:*\n`;
     message += `الاسم: ${data.name}\n`;
-    message += `البريد الإلكتروني: ${data.email}\n`;
+    message += `رقم الهاتف: ${data.phone}\n`;
     message += `العنوان: ${data.address}, ${data.city}, ${data['postal-code']}\n\n`;
     
     message += `*المنتجات المطلوبة:*\n`;
@@ -93,8 +93,8 @@ export default function CheckoutPage() {
                     <Input id="name" name="name" required placeholder="مثال: محمد الأحمد" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">البريد الإلكتروني</Label>
-                    <Input id="email" name="email" type="email" required placeholder="email@example.com" />
+                    <Label htmlFor="phone">رقم الهاتف</Label>
+                    <Input id="phone" name="phone" type="tel" required placeholder="01xxxxxxxxx" />
                   </div>
                 </div>
               </div>
