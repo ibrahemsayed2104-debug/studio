@@ -16,6 +16,7 @@ import { AuthButton } from '../auth-button';
 
 const navLinks = [
   { href: '/', label: 'الرئيسية' },
+  { href: '/gallery', label: 'المعرض' },
   { href: '/virtual-mockup', label: 'جرّبها في منزلك' },
   { href: '/orders', label: 'طلباتي' },
   { href: '/contact', label: 'تواصل معنا' },
