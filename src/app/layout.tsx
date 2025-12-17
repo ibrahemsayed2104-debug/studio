@@ -7,6 +7,7 @@ import { Footer } from '@/components/layout/footer';
 import { CartProvider } from '@/context/cart-context';
 import { siteConfig } from '@/lib/config';
 import { FirebaseClientProvider } from '@/firebase';
+import { bodyFont, headlineFont } from '@/lib/fonts';
 
 export const metadata: Metadata = {
   title: siteConfig.name,
@@ -35,14 +36,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
-      </head>
+      <head />
       <body
         className={cn(
-          'min-h-screen bg-background font-body antialiased'
+          'min-h-screen bg-background font-body antialiased',
+          bodyFont.variable,
+          headlineFont.variable
         )}
       >
         <FirebaseClientProvider>
