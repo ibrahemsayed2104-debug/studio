@@ -18,7 +18,7 @@ const DesignAdviceInputSchema = z.object({
 export type DesignAdviceInput = z.infer<typeof DesignAdviceInputSchema>;
 
 const RecommendedProductSchema = z.object({
-    id: z.string().describe('The ID of the recommended product.'),
+    id: z.string().describe('The EXACT ID of the recommended product from the provided list.'),
     name: z.string().describe('The name of the recommended product.'),
     reason: z.string().describe('A brief reason why this product is recommended for the user.'),
 });
@@ -36,7 +36,7 @@ export async function getDesignAdvice(input: DesignAdviceInput): Promise<DesignA
   return designAdviceFlow(input);
 }
 
-const productList = PRODUCTS.map(p => ({ id: p.id, name: p.name, description: p.description })).join('\n');
+const productList = PRODUCTS.map(p => (`- id: ${p.id}, name: ${p.name}, description: ${p.description}`)).join('\n');
 
 const designAdviceFlow = ai.defineFlow(
   {
@@ -53,7 +53,7 @@ const designAdviceFlow = ai.defineFlow(
       Here is the user's room description:
       "{{{roomDescription}}}"
 
-      Here is the list of available curtain products you can recommend. Only recommend products from this list:
+      Here is the list of available curtain products you can recommend. You MUST ONLY recommend products from this list, using their exact id.
       ---
       ${productList}
       ---
@@ -63,7 +63,7 @@ const designAdviceFlow = ai.defineFlow(
       2.  **Fabric Recommendation:** Suggest a suitable fabric (like velvet for luxury, or linen for a natural look) and explain why it fits their room.
       3.  **Color Palette:** Recommend a few specific colors that would complement their existing decor.
       4.  **Style Tip:** Provide a professional interior design tip. For example, "For a taller and more dramatic look, mount the curtain rod 4-6 inches above the window frame."
-      5.  **Recommended Products:** Choose 2 or 3 products from the provided list that are a perfect match. For each product, provide its exact 'id', 'name', and a compelling 'reason' for why it's a great choice for them.
+      5.  **Recommended Products:** Choose 2 or 3 products from the provided list that are a perfect match. For each product, you MUST provide its exact 'id', 'name', and a compelling 'reason' for why it's a great choice for them.
 
       Your response MUST be in the structured JSON format defined by the output schema. Do not add any extra text or explanations outside of the JSON structure.
     `;
