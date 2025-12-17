@@ -114,7 +114,7 @@ export default function LoginPage() {
     try {
       let formattedPhoneNumber = phoneNumber;
       if (!phoneNumber.startsWith('+')) {
-          formattedPhoneNumber = `+20${phoneNumber.replace(/^0+/, '')}`;
+          formattedPhoneNumber = `+966${phoneNumber.replace(/^0+/, '')}`;
       }
 
       const result = await signInWithPhoneNumber(auth, formattedPhoneNumber, recaptchaVerifier);
@@ -176,7 +176,7 @@ export default function LoginPage() {
                   <Input 
                     id="phone" 
                     type="tel" 
-                    placeholder="01xxxxxxxxx" 
+                    placeholder="05xxxxxxxxx" 
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                   />
