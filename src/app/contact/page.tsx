@@ -28,7 +28,7 @@ export default function ContactPage() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const phoneWhatsApp = "9661111148566"; // Your WhatsApp number with country code, without + or 00
+    const phoneWhatsApp = "201111148566"; // Your WhatsApp number with country code, without + or 00
     const message = `طلب جديد:\n\nالاسم: ${values.name}\nرقم الهاتف: ${values.phone}\n\nالعنوان:\n${values.address}`;
     const whatsappUrl = `https://wa.me/${phoneWhatsApp}?text=${encodeURIComponent(message)}`;
     
