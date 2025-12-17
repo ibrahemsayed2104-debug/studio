@@ -27,7 +27,6 @@ export default function LoginPage() {
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [isOtpSent, setIsOtpSent] = useState(false);
   
-  // Use a ref to hold the RecaptchaVerifier instance
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
   const recaptchaContainerRef = useRef<HTMLDivElement>(null);
 
@@ -37,18 +36,22 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router, redirect]);
 
-  const getRecaptchaVerifier = useCallback(() => {
-    if (!auth) return null;
-    if (!recaptchaVerifierRef.current && recaptchaContainerRef.current) {
-        recaptchaVerifierRef.current = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
+  const initRecaptcha = useCallback(() => {
+    if (auth && recaptchaContainerRef.current && !recaptchaVerifierRef.current) {
+      recaptchaVerifierRef.current = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
         'size': 'invisible',
-        'callback': (response: any) => {
+        'callback': () => {
           // reCAPTCHA solved, allow signInWithPhoneNumber.
         }
       });
     }
-    return recaptchaVerifierRef.current;
   }, [auth]);
+
+  useEffect(() => {
+    if (!isOtpSent) {
+      initRecaptcha();
+    }
+  }, [isOtpSent, initRecaptcha]);
 
 
   const saveUserToFirestore = async (user: any) => {
@@ -61,18 +64,16 @@ export default function LoginPage() {
       photoURL: user.photoURL,
       phoneNumber: user.phoneNumber,
     };
-    // Use await to ensure user data is saved before redirecting
     await setDoc(userDocRef, userProfile, { merge: true });
   };
   
   const handleGoogleSignIn = async () => {
+    if(!auth) return;
     const provider = new GoogleAuthProvider();
     try {
-      if(!auth) return;
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
-      // Wait for user data to be saved before proceeding
       await saveUserToFirestore(user);
       
       toast({
@@ -94,8 +95,18 @@ export default function LoginPage() {
   };
 
   const handlePhoneSignIn = async () => {
-    const recaptchaVerifier = getRecaptchaVerifier();
-    if (!recaptchaVerifier || !auth) {
+    if (!auth) {
+      toast({ variant: "destructive", title: "خطأ", description: "خدمة المصادقة غير متاحة." });
+      return;
+    }
+    
+    // Ensure reCAPTCHA is initialized
+    if (!recaptchaVerifierRef.current) {
+        initRecaptcha();
+    }
+    
+    const recaptchaVerifier = recaptchaVerifierRef.current;
+    if (!recaptchaVerifier) {
       toast({ variant: "destructive", title: "خطأ", description: "لم يتم تهيئة reCAPTCHA بشكل صحيح." });
       return;
     }
@@ -117,9 +128,8 @@ export default function LoginPage() {
         title: "حدث خطأ",
         description: "فشل إرسال رمز التحقق. تأكد من صحة الرقم والمحاولة مرة أخرى.",
       });
-       if (recaptchaVerifierRef.current) {
-         // Reset reCAPTCHA
-         window.grecaptcha?.reset(recaptchaVerifierRef.current.widgetId);
+       if (window.grecaptcha && recaptchaVerifierRef.current?.widgetId !== undefined) {
+         window.grecaptcha.reset(recaptchaVerifierRef.current.widgetId);
        }
     }
   };
@@ -219,7 +229,6 @@ export default function LoginPage() {
   );
 }
 
-// Add this to your global types or a declarations file if it doesn't exist
 declare global {
   interface Window {
     recaptchaVerifier?: RecaptchaVerifier;
