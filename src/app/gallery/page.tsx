@@ -6,9 +6,6 @@ import { GalleryVertical } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { galleryImages } from '@/lib/gallery-images';
 
-const IMAGE_WIDTH = 800;
-const IMAGE_HEIGHT = 1000;
-
 const categories = [
   { id: 'classic', name: 'كلاسيك', images: galleryImages.classic },
   { id: 'roman', name: 'روماني', images: galleryImages.roman },
@@ -25,7 +22,6 @@ export default function GalleryPage() {
           <h1 className="text-4xl md:text-5xl font-headline font-bold text-foreground">
             معرض الصور
           </h1>
-        </div>
         <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
           استكشف أحدث التصاميم والإلهامات من مجموعاتنا المختارة حسب الفئة.
         </p>
@@ -39,20 +35,21 @@ export default function GalleryPage() {
         </TabsList>
 
         {categories.map(category => (
-          <TabsContent key={category.id} value={category.id}>
+          <TabsContent key={category.id} value={category.id} forceMount={false}>
             <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
               {category.images.map((image, index) => (
                 <div key={image.id} className="break-inside-avoid">
-                  <div className="relative w-full rounded-lg overflow-hidden shadow-lg group border transition-all duration-300 hover:shadow-2xl hover:scale-105">
+                  <div className="relative w-full h-auto rounded-lg overflow-hidden shadow-lg group border transition-all duration-300 hover:shadow-2xl hover:scale-105">
                     <Image
                       src={image.url}
                       alt={`${category.name} curtain design ${image.id}`}
-                      width={IMAGE_WIDTH}
-                      height={IMAGE_HEIGHT}
+                      width={800}
+                      height={1000}
                       className="object-cover w-full h-auto"
                       priority={index < 4}
                       loading={index < 4 ? 'eager' : 'lazy'}
                       data-ai-hint={image.hint}
+                      unoptimized={false}
                     />
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
