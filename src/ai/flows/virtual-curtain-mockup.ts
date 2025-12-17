@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import {MediaPart} from 'genkit/model';
 
 const VirtualCurtainMockupInputSchema = z.object({
   roomImage: z
@@ -38,26 +39,14 @@ export async function virtualCurtainMockup(input: VirtualCurtainMockupInput): Pr
   return virtualCurtainMockupFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'virtualCurtainMockupPrompt',
-  input: {schema: VirtualCurtainMockupInputSchema},
-  output: {schema: VirtualCurtainMockupOutputSchema},
-  prompt: [
-    {
-      media: {url: '{{roomImage}}'},
-    },
-    {
-      text: 'Visualize how these curtains would look in the room, and generate an image of the room with the curtains in place. Use the curtain image as reference for the style, color and material of the curtains. Make sure the lighting and shadows match the room.',
-    },
-    {
-      media: {url: '{{curtainImage}}'},
-    },
-  ],
-  model: 'googleai/gemini-2.5-flash-image-preview',
-  config: {
-    responseModalities: ['IMAGE'],
-  },
-});
+function dataUriToMediaPart(uri: string): MediaPart {
+  const [header, data] = uri.split(',');
+  const mimeType = header.match(/:(.*?);/)?.[1];
+  if (!mimeType) {
+    throw new Error('Invalid data URI: could not extract MIME type.');
+  }
+  return {media: {url: uri, contentType: mimeType}};
+}
 
 const virtualCurtainMockupFlow = ai.defineFlow(
   {
@@ -66,7 +55,19 @@ const virtualCurtainMockupFlow = ai.defineFlow(
     outputSchema: VirtualCurtainMockupOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await ai.generate({
+      model: 'googleai/gemini-2.5-flash-image-preview',
+      prompt: [
+        dataUriToMediaPart(input.roomImage),
+        {
+          text: 'Visualize how these curtains would look in the room, and generate an image of the room with the curtains in place. Use the curtain image as reference for the style, color and material of the curtains. Make sure the lighting and shadows match the room.',
+        },
+        dataUriToMediaPart(input.curtainImage),
+      ],
+      config: {
+        responseModalities: ['IMAGE'],
+      },
+    });
     const {media} = output as any;
     return {mockupImage: media.url!};
   }
