@@ -24,11 +24,11 @@ export const galleryImages = {
     { id: 'ho-9', url: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800&q=80', hint: 'modern hotel' },
   ],
   modern: [
-    { id: 'mo-1', url: 'https://i.pinimg.com/564x/e7/73/45/e773450954b41b997c550f670a5996f5.jpg', hint: 'modern curtain' },
-    { id: 'mo-3', url: 'https://i.pinimg.com/564x/0f/52/a9/0f52a9a7b972c3d528f8f2b7b5145bae.jpg', hint: 'living room' },
-    { id: 'mo-4', url: 'https://i.pinimg.com/564x/72/7a/a8/727aa887c7a36081e64e1262d0f507b5.jpg', hint: 'minimalist drape' },
-    { id: 'mo-5', url: 'https://i.pinimg.com/564x/3c/55/7c/3c557c5082a6f44e55e2c140f7b03b22.jpg', hint: 'sheer curtain' },
-    { id: 'mo-6', url: 'https://i.pinimg.com/564x/5a/4b/32/5a4b3212624a0d908233d45f49e49a8b.jpg', hint: 'patterned curtain' },
-    { id: 'mo-7', url: 'https://i.pinimg.com/564x/87/42/1d/87421dce3e433436086f4a86f91d2483.jpg', hint: 'contemporary curtain' },
+    { id: 'mo-1', url: 'https://lh3.googleusercontent.com/-44vT6hr1IoE/YWF2P99ijTI/AAAAAAAAAj4/IWmmSqN_-xQ5TA41k9tnOzqKrubmson6QCLcBGAsYHQ/s16000/IMG_%C3%99%C2%A2%C3%99%C2%A0%C3%99%C2%A2%C3%99%C2%A1%C3%99%C2%A1%C3%99%C2%A0%C3%99%C2%A0%C3%99%C2%A6_%C3%99%C2%A2%C3%99%C2%A1%C3%99%C2%A3%C3%99%C2%A3%C3%99%C2%A5%C3%99%C2%A6%5B2%5D.webp', hint: 'modern curtain' },
+    { id: 'mo-2', url: 'https://mannzely.com/wp-content/uploads/2024/09/%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-%D8%B7%D8%A8%D9%82%D8%AA%D9%8A%D9%86.webp', hint: 'layered curtain' },
+    { id: 'mo-3', url: 'https://blogger.googleusercontent.com/img/a/AVvXsEhQXLirSHRU5jMITbit0kkqTab_sHXa4mNSASDNz5xTGUBiAZvBcPoi0XOKo89WRGQsTxWvxr-N6TMc87yLkIqTIxB-2ZjQKKnLjr4fjaZ-b6SRSHJ_B9EoOxVOiipGgt6YMunrm2dtdfiVtU4Rp0PmadNedhJsTdaolWbZyeHxcDPAVHI0cWeWHw=s16000', hint: 'blue curtain' },
+    { id: 'mo-4', url: 'https://www.aldecor.com/wp-content/uploads/2018/07/Curtains-30.jpg', hint: 'living room' },
+    { id: 'mo-5', url: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiD0imaePrM_eC3rMu8ulY9TRMPntV3OXYPkUgPvw87svz1wIGzvxWs4TOeTjgs_EfQ4hQakYUBfA6KQ1Wx2zylvmZTxfvRknsYi5RBerxRpyVk-3CCHPX5nei7TF_I1xdKWOP5d5j8CgRGtwaz3c4Kw74mClboatnNWcasy86vwYQGF16zlF5a80PaXXkW/w640-h640/%D8%B3%D8%AA%D8%A7%D8%B1%D8%A6%D8%B1%20%D9%85%D9%88%D8%AF%D8%B1%D9%86%20%D9%84%D8%B9%D8%A7%D9%85%202024%20(31).jpg', hint: 'patterned curtain' },
+    { id: 'mo-6', url: 'https://img.youm7.com/ArticleImgs/2017/8/9/88518-%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-%D9%85%D9%88%D8%AF%D8%B1%D9%86.jpg', hint: 'contemporary curtain' },
   ],
 };
