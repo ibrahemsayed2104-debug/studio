@@ -92,6 +92,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'img4cdn.haraj.com.sa',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

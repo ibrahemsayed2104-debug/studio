@@ -50,8 +50,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: '6',
-    name: 'ستارة قطن خضراء',
-    description: 'ستارة قطنية بلون أخضر ترابي، تمنح شعورًا بالراحة والهدوء.',
+    name: 'ستائر رول مكتبية',
+    description: 'ستائر رول عملية وأنيقة للمكاتب، توفر الخصوصية وتتحكم في الإضاءة.',
     imageId: 'curtain-6',
     image: getImage('curtain-6').url,
     imageHint: getImage('curtain-6').hint,
