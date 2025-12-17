@@ -29,10 +29,15 @@ export default function ContactPage() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+    const phone = "9661111148566"; // Your WhatsApp number with country code, without + or 00
+    const message = `مرحبًا،\n\nلدي استفسار من:\nالاسم: ${values.name}\nالبريد الإلكتروني: ${values.email}\n\nالرسالة:\n${values.message}`;
+    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    
+    window.open(whatsappUrl, '_blank');
+
     toast({
-      title: "تم إرسال الرسالة بنجاح!",
-      description: "شكراً لتواصلك معنا، سنقوم بالرد عليك في أقرب وقت ممكن.",
+      title: "جاهز للإرسال عبر واتساب!",
+      description: "سيتم فتح واتساب لإرسال رسالتك.",
     });
     form.reset();
   }
@@ -97,7 +102,7 @@ export default function ContactPage() {
               />
               <Button type="submit" className="w-full font-bold" size="lg">
                 <Send className="ms-2 h-4 w-4" />
-                إرسال الرسالة
+                إرسال الرسالة عبر واتساب
               </Button>
             </form>
           </Form>
