@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, ShoppingCart, GalleryVertical, Home, Package, Smartphone, Users, Phone, MapPin } from 'lucide-react';
+import { Menu, ShoppingCart, GalleryVertical, Home, Package, Smartphone, Users, Phone, MapPin, Wand2 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ const navLinks = [
   { href: '/', label: 'الرئيسية', icon: Home },
   { href: '/gallery', label: 'المعرض', icon: GalleryVertical },
   { href: '/virtual-mockup', label: 'جرّبها في منزلك', icon: Smartphone },
+  { href: '/design-assistant', label: 'مساعد التصميم', icon: Wand2 },
   { href: '/orders', label: 'طلباتي', icon: Package },
   { href: '/contact', label: 'تواصل معنا', icon: Phone },
 ];
