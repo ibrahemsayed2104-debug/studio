@@ -56,113 +56,6 @@
         "style"
       ]
     },
-    "User": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User",
-      "type": "object",
-      "description": "Represents a user of the application.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the user."
-        },
-        "firstName": {
-          "type": "string",
-          "description": "First name of the user."
-        },
-        "lastName": {
-          "type": "string",
-          "description": "Last name of the user."
-        },
-        "email": {
-          "type": "string",
-          "description": "Email address of the user.",
-          "format": "email"
-        },
-        "address": {
-          "type": "string",
-          "description": "Address of the user."
-        }
-      },
-      "required": [
-        "id",
-        "firstName",
-        "lastName",
-        "email",
-        "address"
-      ]
-    },
-    "Order": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Order",
-      "type": "object",
-      "description": "Represents an order placed by a user.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the order."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Order)"
-        },
-        "orderDate": {
-          "type": "string",
-          "description": "Date when the order was placed.",
-          "format": "date-time"
-        },
-        "totalAmount": {
-          "type": "number",
-          "description": "Total amount of the order."
-        },
-        "status": {
-          "type": "string",
-          "description": "Status of the order (e.g., pending, processing, completed)."
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "orderDate",
-        "totalAmount",
-        "status"
-      ]
-    },
-    "OrderItem": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "OrderItem",
-      "type": "object",
-      "description": "Represents an item within an order.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the order item."
-        },
-        "orderId": {
-          "type": "string",
-          "description": "Reference to Order. (Relationship: Order 1:N OrderItem)"
-        },
-        "curtainId": {
-          "type": "string",
-          "description": "Reference to Curtain. (Relationship: Curtain 1:N OrderItem)"
-        },
-        "quantity": {
-          "type": "number",
-          "description": "Quantity of the curtain in the order item."
-        },
-        "price": {
-          "type": "number",
-          "description": "Price of the curtain in the order item."
-        }
-      },
-      "required": [
-        "id",
-        "orderId",
-        "curtainId",
-        "quantity",
-        "price"
-      ]
-    },
     "ContactFormEntry": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ContactFormEntry",
@@ -202,10 +95,7 @@
     }
   },
   "auth": {
-    "providers": [
-      "google.com",
-      "phone"
-    ]
+    "providers": []
   },
   "firestore": {
     "structure": [
@@ -221,66 +111,6 @@
             {
               "name": "curtainId",
               "description": "The unique identifier for a curtain."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profile information. Only the user can read/write their own data.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for a user."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/orders/{orderId}",
-        "definition": {
-          "entityName": "Order",
-          "schema": {
-            "$ref": "#/backend/entities/Order"
-          },
-          "description": "Stores order information for each user.  Path-based ownership ensures only the user can access their own orders.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for a user."
-            },
-            {
-              "name": "orderId",
-              "description": "The unique identifier for an order."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/orders/{orderId}/order_items/{orderItemId}",
-        "definition": {
-          "entityName": "OrderItem",
-          "schema": {
-            "$ref": "#/backend/entities/OrderItem"
-          },
-          "description": "Stores individual items within an order. Path-based ownership ensures only the user can access their own order items.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for a user."
-            },
-            {
-              "name": "orderId",
-              "description": "The unique identifier for an order."
-            },
-            {
-              "name": "orderItemId",
-              "description": "The unique identifier for an order item."
             }
           ]
         }
@@ -302,6 +132,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support the 'StarTak' curtain store application, focusing on product catalog, customization, ordering, and user management. The structure prioritizes security, scalability, and ease of debugging by adhering to the principles of Authorization Independence and Structural Segregation.  Authorization Independence is achieved by using path-based ownership for user-specific data (orders) and avoiding `get()` calls in security rules. Data requiring authorization, like user orders, are placed under the `/users/{userId}` path, ensuring only the authenticated user can access their data.  Structural Segregation separates concerns by placing contact form submissions in a dedicated collection, `/contact_form_entries`, which allows for simpler and more secure security rules compared to mixing these entries with other data. QAPs are supported by the structure as follows: List operations are secured by ensuring consistent security requirements within each collection. For example, only authenticated users can list their own orders under `/users/{userId}/orders`. Contact form entries may have different listing requirements depending on the desired admin functionality, but this is isolated to the `/contact_form_entries` collection."
+    "reasoning": "The Firestore data structure is designed to support the 'StarTak' curtain store application, focusing on product catalog and contact form submissions. Authentication has been removed, so user-specific collections like profiles and orders are no longer needed. The structure is simplified to public and write-only collections."
   }
 }

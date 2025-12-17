@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useCart } from '@/context/cart-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,98 +15,51 @@ import { useToast } from '@/hooks/use-toast';
 import { siteConfig } from '@/lib/config';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SAUDI_CITIES } from '@/lib/data';
-import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
-import { collection } from 'firebase/firestore';
 
 export default function CheckoutPage() {
   const { cartItems, itemCount, clearCart } = useCart();
   const router = useRouter();
   const { toast } = useToast();
-  const { user, isUserLoading } = useUser();
-  const firestore = useFirestore();
-
-  const ordersCollection = useMemo(() => {
-    if (!firestore || !user) return null;
-    return collection(firestore, 'users', user.uid, 'orders');
-  }, [firestore, user]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!user) {
-      toast({
-        variant: "destructive",
-        title: "خطأ",
-        description: "يجب عليك تسجيل الدخول لإتمام الطلب.",
-      });
-      router.push('/login?redirect=/cart');
-      return;
-    }
-
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
+    
+    const orderId = `order_${Date.now()}`;
 
-    const orderData = {
-      userId: user.uid,
-      orderDate: new Date().toISOString(),
-      status: 'Processing',
-      totalAmount: itemCount, // Or calculate the actual price later
-      customerInfo: {
-        name: data.name,
-        phone: data.phone,
-        address: data.address,
-        city: data.city,
-        postalCode: data['postal-code'],
-      },
-      orderItems: cartItems.map(item => ({
-        curtainId: item.product.id,
-        name: item.product.name,
-        quantity: item.quantity,
-        customization: item.customization,
-      })),
-    };
-
-    if (ordersCollection) {
-      const newOrderRef = await addDocumentNonBlocking(ordersCollection, orderData);
-      
-      const orderId = newOrderRef.id;
-
-      // Construct WhatsApp message
-      let message = `*طلب جديد من ${siteConfig.name}*\n`;
-      message += `*رقم الطلب:* ${orderId}\n\n`;
-      message += `*معلومات العميل:*\n`;
-      message += `الاسم: ${data.name}\n`;
-      message += `رقم الهاتف: ${data.phone}\n`;
-      message += `العنوان: ${data.address}, ${data.city}, ${data['postal-code']}\n\n`;
-      
-      message += `*المنتجات المطلوبة:*\n`;
-      cartItems.forEach(item => {
-        message += `--------------------\n`;
-        message += `المنتج: ${item.product.name}\n`;
-        message += `الكمية: ${item.quantity}\n`;
-        message += `التخصيص: ${item.customization.fabric}, ${item.customization.size}, ${item.customization.color}, ${item.customization.style}\n`;
-      });
+    // Construct WhatsApp message
+    let message = `*طلب جديد من ${siteConfig.name}*\n`;
+    message += `*رقم الطلب:* ${orderId}\n\n`;
+    message += `*معلومات العميل:*\n`;
+    message += `الاسم: ${data.name}\n`;
+    message += `رقم الهاتف: ${data.phone}\n`;
+    message += `العنوان: ${data.address}, ${data.city}, ${data['postal-code']}\n\n`;
+    
+    message += `*المنتجات المطلوبة:*\n`;
+    cartItems.forEach(item => {
       message += `--------------------\n`;
-      message += `*إجمالي عدد المنتجات:* ${itemCount}\n\n`;
-      message += `*طريقة الدفع:* الدفع عند الاستلام (كاش)`;
+      message += `المنتج: ${item.product.name}\n`;
+      message += `الكمية: ${item.quantity}\n`;
+      message += `التخصيص: ${item.customization.fabric}, ${item.customization.size}, ${item.customization.color}, ${item.customization.style}\n`;
+    });
+    message += `--------------------\n`;
+    message += `*إجمالي عدد المنتجات:* ${itemCount}\n\n`;
+    message += `*طريقة الدفع:* الدفع عند الاستلام (كاش)`;
 
-      const whatsappUrl = `https://wa.me/${siteConfig.contact.phone}?text=${encodeURIComponent(message)}`;
-      
-      window.open(whatsappUrl, '_blank');
+    const whatsappUrl = `https://wa.me/${siteConfig.contact.phone}?text=${encodeURIComponent(message)}`;
+    
+    window.open(whatsappUrl, '_blank');
 
-      toast({
-        title: "تم توجيهك إلى واتساب!",
-        description: "أرسل الرسالة لتأكيد طلبك. تم حفظ طلبك في حسابك.",
-      });
+    toast({
+      title: "تم توجيهك إلى واتساب!",
+      description: "أرسل الرسالة لتأكيد طلبك.",
+    });
 
-      clearCart();
-      router.push('/order-success');
-    }
+    clearCart();
+    router.push('/order-success');
   };
-
-  if (isUserLoading) {
-    return <div className="container text-center py-20">جاري تحميل بيانات المستخدم...</div>;
-  }
 
   if (itemCount === 0) {
     return (
@@ -138,20 +91,12 @@ export default function CheckoutPage() {
               <CardTitle className="font-headline">معلومات الشحن والدفع</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-               {!user && (
-                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
-                  <p className="font-bold">تنبيه</p>
-                  <p>
-                    يجب عليك <Link href="/login?redirect=/cart" className="underline">تسجيل الدخول</Link> لإتمام عملية الشراء.
-                  </p>
-                </div>
-              )}
               <div className="space-y-4">
                 <h3 className="font-medium text-lg">معلومات الاتصال</h3>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">الاسم الكامل</Label>
-                    <Input id="name" name="name" required placeholder="مثال: محمد الأحمد" defaultValue={user?.displayName || ''} />
+                    <Input id="name" name="name" required placeholder="مثال: محمد الأحمد" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">رقم الهاتف</Label>
@@ -228,8 +173,8 @@ export default function CheckoutPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" size="lg" className="w-full font-bold" disabled={!user || isUserLoading}>
-                {isUserLoading ? 'جاري التحميل...' : 'تأكيد الطلب وإرسال عبر واتساب'}
+              <Button type="submit" size="lg" className="w-full font-bold">
+                تأكيد الطلب وإرسال عبر واتساب
               </Button>
             </CardFooter>
           </Card>

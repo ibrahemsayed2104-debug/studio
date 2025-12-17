@@ -1,136 +1,47 @@
 /**
- * This ruleset enforces a security model for the 'StarTak' curtain store application.
+ * This ruleset is for the 'Fabrics' curtain store application.
  *
  * Core Philosophy:
- * The security model is primarily based on user ownership. All user-generated data, such as
- * profiles and orders, is strictly isolated to the user who created it. This prevents users
- * from accessing or modifying each other's private information. Publicly accessible data,
- * like the product catalog, is read-only for all users.
+ * With the removal of user authentication, the security model is simplified. All data
+ * is either public or write-only. There is no concept of user ownership.
  *
  * Data Structure:
- * The data is organized into logical top-level collections.
  * - /curtains: A public collection for the product catalog.
- * - /users: Stores all user-specific data. Each user has a document keyed by their UID.
- * - /users/{userId}/orders: A subcollection for a user's order history.
  * - /contact_form_entries: A write-only collection for public contact form submissions.
  *
  * Key Security Decisions:
- * - User Isolation: All user-specific data is nested under `/users/{userId}`, which provides a
- *   simple and highly secure way to grant access based on the path. This avoids costly `get()`
- *   calls in rules.
- * - Public Catalog: The `/curtains` collection is publicly readable by anyone, including
- *   unauthenticated visitors, to allow browsing of the product catalog. Writes are disabled
- *   pending administrative implementation.
- * - Write-Only Contact Form: The `/contact_form_entries` collection allows anyone (including
- *   anonymous users) to submit an entry but denies all read, update, and delete operations.
- *   This protects the privacy of submitters while allowing the form to function publicly. This
- *   directly addresses auth errors for unauthenticated users submitting the form.
+ * - Public Catalog: The `/curtains` collection is publicly readable by anyone. Writes are
+ *   disabled, assuming they will be managed by an admin process outside of direct
+ *   client access.
+ * - Write-Only Contact Form: The `/contact_form_entries` collection allows anyone to submit
+ *   an entry but denies all read, update, and delete operations. This protects the privacy
+ *   of submitters while allowing the form to function publicly.
  * - Deny by Default: Any operation not explicitly granted is denied.
- *
- * Denormalization for Authorization:
- * To ensure fast and secure authorization, user-specific data like orders contains a `userId`
- * field that is validated against the path. This enforces relational integrity without
- * requiring extra database reads during rule evaluation.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions to improve readability and maintainability.
-
-    /**
-     * Checks if a user is signed into the application.
-     */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * Checks if the currently authenticated user's UID matches the provided userId.
-     * This is the primary function for enforcing data ownership.
-     */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    /**
-     * Checks for ownership on an existing document. Used for update and delete
-     * operations to prevent acting on non-existent data.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
     /**
      * @description Publicly readable catalog of curtain products. Writes are disabled.
      * @path /curtains/{curtainId}
      * @allow (get) Any user, signed in or not, can view a specific curtain.
-     * @deny (create) A user attempts to add a new curtain to the catalog.
-     * @principle Public read access for a catalog, with writes reserved for admin roles (not yet implemented).
+     * @deny (create) All client-side writes are denied.
      */
     match /curtains/{curtainId} {
       allow get, list: if true;
-      // CRITICAL: Cannot implement owner-only writes. The 'Curtain' entity is missing an 'ownerId' or 'authorId' field.
-      // Disabling writes until an admin role system or ownership field is added.
-      allow create, update, delete: if false; // TODO: Add admin validation once the schema supports it.
-    }
-
-    /**
-     * @description A user's own profile document.
-     * @path /users/{userId}
-     * @allow (create) A new user creates their own profile document (`request.auth.uid == userId`).
-     * @deny (get) A signed-in user tries to read another user's profile (`request.auth.uid != userId`).
-     * @principle Restricts access to a user's own data tree and allows self-creation of a profile.
-     */
-    match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
-
-      /**
-       * @description A user's collection of orders.
-       * @path /users/{userId}/orders/{orderId}
-       * @allow (create) An authenticated user creates a new order in their own orders subcollection.
-       * @deny (list) An authenticated user tries to list orders belonging to another user.
-       * @principle Enforces document ownership for all operations based on the URL path.
-       */
-      match /orders/{orderId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId) && request.resource.data.userId == userId;
-        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-        allow delete: if isExistingOwner(userId);
-
-        /**
-         * @description The specific items within a user's order.
-         * @path /users/{userId}/orders/{orderId}/order_items/{orderItemId}
-         * @allow (get) An authenticated user reads an item from one of their own orders.
-         * @deny (update) An authenticated user tries to modify an item in another user's order.
-         * @principle Inherits ownership from the parent path, ensuring only the owner of the order can access its items.
-         */
-        match /order_items/{orderItemId} {
-          allow get, list: if isOwner(userId);
-          allow create: if isOwner(userId) && request.resource.data.orderId == orderId;
-          allow update: if isExistingOwner(userId) && request.resource.data.orderId == resource.data.orderId;
-          allow delete: if isExistingOwner(userId);
-        }
-      }
+      allow create, update, delete: if false; // All client writes are disabled.
     }
 
     /**
      * @description Stores submissions from the public contact form.
      * @path /contact_form_entries/{contactFormEntryId}
-     * @allow (create) Any user (including anonymous or unauthenticated) can submit the contact form.
-     * @deny (get) A user attempts to read any contact form submission.
-     * @principle Allows public write access for data submission while securing the submitted data from public reads.
+     * @allow (create) Any user (anonymous or otherwise) can submit the contact form.
+     * @deny (get) Reading submissions is denied to protect privacy.
      */
     match /contact_form_entries/{contactFormEntryId} {
       allow create: if true;
-      allow get: if false;
-      allow list: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow get, list, update, delete: if false;
     }
   }
 }
