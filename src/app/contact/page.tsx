@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from 'next/link';
@@ -24,7 +24,7 @@ const formSchema = z.object({
   phone: z.string().min(10, "رقم الهاتف يجب أن يكون 10 أرقام على الأقل."),
   country: z.string({ required_error: "الرجاء اختيار دولة." }),
   governorate: z.string().optional(),
-  city: z.string({ required_error: "الرجاء اختيار مدينة." }),
+  city: z.string({ required_error: "الرجاء اختيار مدينة." }).min(1, "الرجاء اختيار مدينة."),
   address: z.string().min(10, "العنوان يجب أن يكون 10 أحرف على الأقل."),
 });
 
@@ -204,7 +204,7 @@ export default function ContactPage() {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-full p-0">
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                           <Command>
                             <CommandInput placeholder="ابحث عن مدينة..." />
                             <CommandEmpty>لم يتم العثور على مدينة.</CommandEmpty>
