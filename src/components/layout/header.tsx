@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, ShoppingCart, GalleryVertical, Home, Package, Smartphone, Users, Phone, MapPin, Wand2 } from 'lucide-react';
+import { useState } from 'react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ const navLinks = [
 export function Header() {
   const pathname = usePathname();
   const { itemCount } = useCart();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -74,7 +76,7 @@ export function Header() {
               </SheetContent>
             </Sheet>
 
-            <Sheet>
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden">
                   <Menu className="h-5 w-5" />
@@ -84,7 +86,7 @@ export function Header() {
               <SheetContent side="right">
                  <SheetTitle className="sr-only">Main Menu</SheetTitle>
                 <div className="flex flex-col gap-6 pt-10">
-                  <Link href="/" className="flex items-center space-x-2 rtl:space-x-reverse">
+                  <Link href="/" className="flex items-center space-x-2 rtl:space-x-reverse" onClick={() => setMobileMenuOpen(false)}>
                     <CurtainIcon className="h-6 w-6 text-primary" />
                     <span className="font-bold font-headline text-2xl">{siteConfig.name}</span>
                   </Link>
@@ -92,6 +94,7 @@ export function Header() {
                     <Link
                       key={link.href}
                       href={link.href}
+                      onClick={() => setMobileMenuOpen(false)}
                       className={cn(
                         'text-lg transition-colors hover:text-foreground/80 flex items-center gap-3',
                         pathname === link.href ? 'text-primary font-semibold' : 'text-foreground/60'
@@ -105,6 +108,7 @@ export function Header() {
                       href={siteConfig.contact.googleMapsUrl}
                       target="_blank" 
                       rel="noopener noreferrer"
+                      onClick={() => setMobileMenuOpen(false)}
                       className='text-lg text-foreground/60 transition-colors hover:text-foreground/80 flex items-center gap-3'
                     >
                       <MapPin className="h-5 w-5" />
