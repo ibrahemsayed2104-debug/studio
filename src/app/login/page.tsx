@@ -12,6 +12,12 @@ import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const supportedCountries = [
+  { name: 'مصر', code: '+20' },
+  { name: 'السعودية', code: '+966' },
+];
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -22,6 +28,7 @@ export default function LoginPage() {
   const redirect = searchParams.get('redirect') || '/';
   const { toast } = useToast();
 
+  const [countryCode, setCountryCode] = useState(supportedCountries[0].code);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
@@ -100,7 +107,6 @@ export default function LoginPage() {
       return;
     }
     
-    // Ensure reCAPTCHA is initialized
     if (!recaptchaVerifierRef.current) {
         initRecaptcha();
     }
@@ -112,10 +118,7 @@ export default function LoginPage() {
     }
 
     try {
-      let formattedPhoneNumber = phoneNumber;
-      if (!phoneNumber.startsWith('+')) {
-          formattedPhoneNumber = `+966${phoneNumber.replace(/^0+/, '')}`;
-      }
+      const formattedPhoneNumber = `${countryCode}${phoneNumber.replace(/^0+/, '')}`;
 
       const result = await signInWithPhoneNumber(auth, formattedPhoneNumber, recaptchaVerifier);
       setConfirmationResult(result);
@@ -173,13 +176,26 @@ export default function LoginPage() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="phone">رقم الهاتف</Label>
-                  <Input 
-                    id="phone" 
-                    type="tel" 
-                    placeholder="05xxxxxxxxx" 
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                  />
+                  <div className="flex gap-2">
+                     <Select value={countryCode} onValueChange={setCountryCode}>
+                        <SelectTrigger className="w-[120px]">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {supportedCountries.map(country => (
+                                <SelectItem key={country.code} value={country.code}>{country.name} ({country.code})</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <Input 
+                      id="phone" 
+                      type="tel" 
+                      placeholder="01xxxxxxxxx" 
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
                 </div>
                 <Button onClick={handlePhoneSignIn} className="w-full font-bold">
                   إرسال رمز التحقق
