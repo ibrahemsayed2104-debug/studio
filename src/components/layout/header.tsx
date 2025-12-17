@@ -6,7 +6,7 @@ import { Menu, ShoppingCart, GalleryVertical, Home, Package, Smartphone, Users, 
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { CurtainIcon } from '@/components/icons';
 import { CartView } from '@/components/cart-view';
 import { useCart } from '@/context/cart-context';
@@ -69,6 +69,7 @@ export function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent className="w-[400px] sm:w-[540px] p-0">
+                 <SheetTitle className="sr-only">Shopping Cart</SheetTitle>
                 <CartView />
               </SheetContent>
             </Sheet>
@@ -81,6 +82,7 @@ export function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right">
+                 <SheetTitle className="sr-only">Main Menu</SheetTitle>
                 <div className="flex flex-col gap-6 pt-10">
                   <Link href="/" className="flex items-center space-x-2 rtl:space-x-reverse">
                     <CurtainIcon className="h-6 w-6 text-primary" />
