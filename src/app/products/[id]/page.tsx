@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, use } from 'react';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { useCart } from '@/context/cart-context';
@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ShoppingCart } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
-export default function ProductPage({ params }: { params: { id: string } }) {
+export default function ProductPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
+  const params = use(paramsPromise);
   const product = PRODUCTS.find((p) => p.id === params.id);
   
   const [quantity, setQuantity] = useState(1);
