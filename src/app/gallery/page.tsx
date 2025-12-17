@@ -37,7 +37,7 @@ export default function GalleryPage() {
 
         {categories.map(category => (
           <TabsContent key={category.id} value={category.id} forceMount={false}>
-            <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+            <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
               {category.images.map((image, index) => (
                 <div key={image.id} className="break-inside-avoid">
                   <div className="relative w-full h-auto rounded-lg overflow-hidden shadow-lg group border transition-all duration-300 hover:shadow-2xl hover:scale-105">
@@ -47,8 +47,8 @@ export default function GalleryPage() {
                       width={800}
                       height={1000}
                       className="object-cover w-full h-auto"
-                      priority={index < 4}
-                      loading={index < 4 ? 'eager' : 'lazy'}
+                      priority={index < 2}
+                      loading={index < 2 ? 'eager' : 'lazy'}
                       data-ai-hint={image.hint}
                     />
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
