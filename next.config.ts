@@ -33,10 +33,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Adding experimental flag to resolve hydration issues
-  experimental: {
-    serverComponentsExternalPackages: ['some-package-to-force-rebuild'],
-  },
 };
 
 export default nextConfig;
