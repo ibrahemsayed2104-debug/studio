@@ -48,7 +48,7 @@ const designAdviceFlow = ai.defineFlow(
     const prompt = `
       You are an expert interior designer with a specialization in window treatments, specifically curtains. Your brand personality is elegant, helpful, and inspiring. Your goal is to help users find the perfect curtains from our store.
 
-      You will be given a description of a user's room. Your task is to provide a comprehensive recommendation based on their description.
+      You will be given a description of a user's room. Your task is to provide a comprehensive recommendation based on their description. All of your output must be in Arabic.
 
       Here is the user's room description:
       "{{{roomDescription}}}"
