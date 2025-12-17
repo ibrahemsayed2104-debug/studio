@@ -13,7 +13,7 @@ import { Send } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(2, "الاسم يجب أن يكون حرفين على الأقل."),
-  email: z.string().email("البريد الإلكتروني غير صالح."),
+  phone: z.string().min(10, "رقم الهاتف يجب أن يكون 10 أرقام على الأقل."),
   message: z.string().min(10, "الرسالة يجب أن تكون 10 أحرف على الأقل."),
 });
 
@@ -23,15 +23,15 @@ export default function ContactPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      email: "",
+      phone: "",
       message: "",
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const phone = "9661111148566"; // Your WhatsApp number with country code, without + or 00
-    const message = `مرحبًا،\n\nلدي استفسار من:\nالاسم: ${values.name}\nالبريد الإلكتروني: ${values.email}\n\nالرسالة:\n${values.message}`;
-    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    const phoneWhatsApp = "9661111148566"; // Your WhatsApp number with country code, without + or 00
+    const message = `مرحبًا،\n\nلدي استفسار من:\nالاسم: ${values.name}\nرقم الهاتف: ${values.phone}\n\nالرسالة:\n${values.message}`;
+    const whatsappUrl = `https://wa.me/${phoneWhatsApp}?text=${encodeURIComponent(message)}`;
     
     window.open(whatsappUrl, '_blank');
 
@@ -76,12 +76,12 @@ export default function ContactPage() {
               />
               <FormField
                 control={form.control}
-                name="email"
+                name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>البريد الإلكتروني</FormLabel>
+                    <FormLabel>رقم الهاتف</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="you@example.com" {...field} />
+                      <Input type="tel" placeholder="05xxxxxxxx" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
