@@ -133,6 +133,12 @@ const nextConfig: NextConfig = {
         hostname: 'vid.alarabiya.net',
         port: '',
         pathname: '/**',
+      },
+       {
+        protocol: 'https',
+        hostname: 'beytk.net',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

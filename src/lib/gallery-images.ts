@@ -1,10 +1,10 @@
 
 export const galleryImages = {
   classic: [
-    { id: 'cl-1', url: 'https://i.pinimg.com/564x/5a/3b/0f/5a3b0f622a0a2d52c1d37435e98343f7.jpg', hint: 'classic curtain' },
-    { id: 'cl-2', url: 'https://i.pinimg.com/564x/4b/32/38/4b323864c393551a3a30a842f883b2a2.jpg', hint: 'elegant drape' },
-    { id: 'cl-3', url: 'https://i.pinimg.com/564x/a4/08/94/a408945a9563914a2f8b5f3069151c6b.jpg', hint: 'luxury curtain' },
-    { id: 'cl-4', url: 'https://i.pinimg.com/564x/0f/cf/58/0fcf58631b6b57ded803a60a7479717b.jpg', hint: 'vintage curtain' },
+    { id: 'cl-1', url: 'https://beytk.net/wp-content/uploads/2023/11/%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-%D9%83%D9%84%D8%A7%D8%B3%D9%8A%D9%83-%D9%81%D8%AE%D9%85%D8%A9-%D9%84%D9%84%D8%B5%D8%A7%D9%84%D9%88%D9%86-3.jpg', hint: 'classic curtain' },
+    { id: 'cl-2', url: 'https://decor30.com/wp-content/uploads/2019/03/%D8%A7%D8%AD%D8%AF%D8%AB-%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-%D9%83%D9%84%D8%A7%D8%B3%D9%8A%D9%83-%D9%84%D9%84%D8%B5%D8%A7%D9%84%D9%88%D9%86%D8%A7%D8%AA-2018.jpg', hint: 'elegant drape' },
+    { id: 'cl-3', url: 'https://www.aldecor.com/wp-content/uploads/2018/07/Curtains-58.jpg', hint: 'luxury curtain' },
+    { id: 'cl-4', url: 'https://www.aldecor.com/wp-content/uploads/2018/07/Curtains-23.jpg', hint: 'vintage curtain' },
   ],
   roman: [
     { id: 'ro-1', url: 'https://sadafaldar.com/wp-content/uploads/2022/08/%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-%D8%B1%D9%88%D9%85%D8%A7%D9%86%D9%8A-%D8%B5%D8%AF%D9%81-%D8%A7%D9%84%D8%AF%D8%A7%D8%B1-%D9%84%D9%84%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-4.jpeg', hint: 'roman shade' },
