@@ -1,6 +1,7 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from 'next/link';
@@ -12,13 +13,15 @@ import { useToast } from "@/hooks/use-toast";
 import { Send, MapPin, Navigation } from "lucide-react";
 import { siteConfig } from "@/lib/config";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SAUDI_CITIES } from "@/lib/data";
+import { SAUDI_CITIES, EGYPT_GOVERNORATES, COUNTRIES } from "@/lib/data";
 import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
   name: z.string().min(2, "الاسم يجب أن يكون حرفين على الأقل."),
   phone: z.string().min(10, "رقم الهاتف يجب أن يكون 10 أرقام على الأقل."),
-  city: z.string({required_error: "الرجاء اختيار مدينة."}),
+  country: z.string({ required_error: "الرجاء اختيار دولة." }),
+  governorate: z.string().optional(),
+  city: z.string({ required_error: "الرجاء اختيار مدينة." }),
   address: z.string().min(10, "العنوان يجب أن يكون 10 أحرف على الأقل."),
 });
 
@@ -29,12 +32,46 @@ export default function ContactPage() {
     defaultValues: {
       name: "",
       phone: "",
+      country: COUNTRIES[0],
+      governorate: EGYPT_GOVERNORATES[0].governorate,
       address: "",
     },
   });
 
+  const selectedCountry = form.watch("country");
+  const selectedGovernorate = form.watch("governorate");
+
+  const [cities, setCities] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (selectedCountry === 'مصر') {
+        const governorateData = EGYPT_GOVERNORATES.find(g => g.governorate === selectedGovernorate);
+        setCities(governorateData ? governorateData.cities : []);
+    } else if (selectedCountry === 'المملكة العربية السعودية') {
+        setCities(SAUDI_CITIES);
+    } else {
+        setCities([]);
+    }
+    form.setValue('city', '');
+  }, [selectedCountry, selectedGovernorate, form]);
+  
+  useEffect(() => {
+    if (selectedCountry === 'مصر') {
+      form.setValue('governorate', EGYPT_GOVERNORATES[0].governorate);
+    } else {
+      form.setValue('governorate', undefined);
+    }
+  }, [selectedCountry, form]);
+
+
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const message = `طلب جديد:\n\nالاسم: ${values.name}\nرقم الهاتف: ${values.phone}\nالمدينة: ${values.city}\n\nالعنوان:\n${values.address}`;
+    let fullAddress = `${values.address}, ${values.city}`;
+    if (values.country === 'مصر' && values.governorate) {
+        fullAddress += `, ${values.governorate}`;
+    }
+    fullAddress += `, ${values.country}`;
+
+    const message = `طلب جديد:\n\nالاسم: ${values.name}\nرقم الهاتف: ${values.phone}\nالعنوان: ${fullAddress}`;
     const whatsappUrl = `https://wa.me/${siteConfig.contact.phone}?text=${encodeURIComponent(message)}`;
     
     window.open(whatsappUrl, '_blank');
@@ -92,20 +129,62 @@ export default function ContactPage() {
                     </FormItem>
                   )}
                 />
+                 <FormField
+                  control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>الدولة</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر دولتك" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {selectedCountry === 'مصر' && (
+                  <FormField
+                    control={form.control}
+                    name="governorate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>المحافظة</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="اختر محافظتك" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {EGYPT_GOVERNORATES.map(g => <SelectItem key={g.governorate} value={g.governorate}>{g.governorate}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
                 <FormField
                   control={form.control}
                   name="city"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>المدينة</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={cities.length === 0}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="اختر مدينتك" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {SAUDI_CITIES.map(city => (
+                          {cities.map(city => (
                             <SelectItem key={city} value={city}>{city}</SelectItem>
                           ))}
                         </SelectContent>
@@ -119,7 +198,7 @@ export default function ContactPage() {
                   name="address"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>تفاصيل العنوان</FormLabel>
+                      <FormLabel>تفاصيل العنوان (الشارع، الحي)</FormLabel>
                       <FormControl>
                         <Input placeholder="اكتب اسم الشارع والحي هنا..." {...field} />
                       </FormControl>
@@ -148,7 +227,7 @@ export default function ContactPage() {
                   <MapPin className="h-6 w-6 text-primary mt-1" />
                   <div className="flex-1">
                       <p className="font-semibold text-foreground">{siteConfig.contact.address}</p>
-                      <p className="text-sm text-muted-foreground">المملكة العربية السعودية</p>
+                      <p className="text-sm text-muted-foreground">جمهورية مصر العربية</p>
                   </div>
               </div>
               <Button asChild className="w-full font-bold" size="lg">

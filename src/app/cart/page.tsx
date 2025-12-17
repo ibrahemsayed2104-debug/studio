@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '@/context/cart-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,12 +14,38 @@ import { ShoppingCart, Wallet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { siteConfig } from '@/lib/config';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { SAUDI_CITIES } from '@/lib/data';
+import { SAUDI_CITIES, EGYPT_GOVERNORATES, COUNTRIES } from '@/lib/data';
 
 export default function CheckoutPage() {
   const { cartItems, itemCount, clearCart } = useCart();
   const router = useRouter();
   const { toast } = useToast();
+
+  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
+  const [selectedGovernorate, setSelectedGovernorate] = useState('');
+  const [cities, setCities] = useState<string[]>([]);
+  const [selectedCity, setSelectedCity] = useState('');
+  
+  useEffect(() => {
+    if (selectedCountry === 'مصر') {
+        const governorateData = EGYPT_GOVERNORATES.find(g => g.governorate === selectedGovernorate);
+        setCities(governorateData ? governorateData.cities : []);
+    } else if (selectedCountry === 'المملكة العربية السعودية') {
+        setCities(SAUDI_CITIES);
+    } else {
+        setCities([]);
+    }
+    setSelectedCity('');
+  }, [selectedCountry, selectedGovernorate]);
+  
+  useEffect(() => {
+    if (selectedCountry === 'مصر') {
+        setSelectedGovernorate(EGYPT_GOVERNORATES[0].governorate);
+    } else {
+        setSelectedGovernorate('');
+    }
+  }, [selectedCountry]);
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -35,7 +61,18 @@ export default function CheckoutPage() {
     message += `*معلومات العميل:*\n`;
     message += `الاسم: ${data.name}\n`;
     message += `رقم الهاتف: ${data.phone}\n`;
-    message += `العنوان: ${data.address}, ${data.city}, ${data['postal-code']}\n\n`;
+    
+    let fullAddress = `${data.address}, ${data.city}`;
+    if (selectedCountry === 'مصر' && data.governorate) {
+        fullAddress += `, ${data.governorate}`;
+    }
+    fullAddress += `, ${data.country}`;
+
+    if (data['postal-code']) {
+      fullAddress += `, ${data['postal-code']}`;
+    }
+
+    message += `العنوان: ${fullAddress}\n\n`;
     
     message += `*المنتجات المطلوبة:*\n`;
     cartItems.forEach(item => {
@@ -106,31 +143,57 @@ export default function CheckoutPage() {
               </div>
               <div className="space-y-4">
                 <h3 className="font-medium text-lg">عنوان الشحن</h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="country">الدولة</Label>
+                        <Select name="country" required value={selectedCountry} onValueChange={setSelectedCountry}>
+                            <SelectTrigger id="country">
+                                <SelectValue placeholder="اختر الدولة" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {COUNTRIES.map(country => (
+                                <SelectItem key={country} value={country}>{country}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    {selectedCountry === 'مصر' && (
+                        <div className="space-y-2">
+                            <Label htmlFor="governorate">المحافظة</Label>
+                            <Select name="governorate" required value={selectedGovernorate} onValueChange={setSelectedGovernorate}>
+                                <SelectTrigger id="governorate">
+                                    <SelectValue placeholder="اختر المحافظة" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {EGYPT_GOVERNORATES.map(gov => (
+                                    <SelectItem key={gov.governorate} value={gov.governorate}>{gov.governorate}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="address">العنوان</Label>
                   <Input id="address" name="address" required placeholder="123 شارع الملك فهد" />
                 </div>
-                <div className="grid sm:grid-cols-3 gap-4">
+                <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="city">المدينة</Label>
-                    <Select name="city" required>
+                    <Select name="city" required value={selectedCity} onValueChange={setSelectedCity} disabled={cities.length === 0}>
                       <SelectTrigger id="city">
                         <SelectValue placeholder="اختر مدينة" />
                       </SelectTrigger>
                       <SelectContent>
-                        {SAUDI_CITIES.map(city => (
+                        {cities.map(city => (
                           <SelectItem key={city} value={city}>{city}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="postal-code">الرمز البريدي</Label>
-                    <Input id="postal-code" name="postal-code" required placeholder="12345" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="country">الدولة</Label>
-                    <Input id="country" name="country" required readOnly value="المملكة العربية السعودية" />
+                    <Label htmlFor="postal-code">الرمز البريدي (اختياري)</Label>
+                    <Input id="postal-code" name="postal-code" placeholder="12345" />
                   </div>
                 </div>
               </div>
