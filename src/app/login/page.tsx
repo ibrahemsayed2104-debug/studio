@@ -117,7 +117,7 @@ export default function LoginPage() {
       // Reset reCAPTCHA
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.render().then((widgetId) => {
-          if (typeof grecaptcha !== 'undefined') {
+          if (typeof grecaptcha !== 'undefined' && grecaptcha.reset) {
             grecaptcha.reset(widgetId);
           }
         });
