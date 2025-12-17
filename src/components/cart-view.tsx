@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { X, ShoppingCart } from 'lucide-react';
 
 export function CartView() {
-  const { cartItems, removeFromCart, updateQuantity, cartTotal, itemCount } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, itemCount } = useCart();
 
   return (
     <div className="h-full flex flex-col">
@@ -41,7 +41,6 @@ export function CartView() {
                         <Input type="number" value={item.quantity} readOnly className="h-8 w-12 text-center" />
                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, item.quantity + 1)}><span className="text-lg">+</span></Button>
                       </div>
-                      <p className="font-semibold">{item.product.price * item.quantity} ر.س</p>
                     </div>
                   </div>
                   <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => removeFromCart(item.id)}>
@@ -54,8 +53,8 @@ export function CartView() {
           <SheetFooter className="p-6 bg-secondary/50 border-t">
             <div className="w-full space-y-4">
               <div className="flex justify-between font-bold text-lg">
-                <span>المجموع الكلي:</span>
-                <span>{cartTotal} ر.س</span>
+                <span>إجمالي المنتجات:</span>
+                <span>{itemCount}</span>
               </div>
               <Button asChild size="lg" className="w-full font-bold">
                 <Link href="/cart">إتمام الطلب</Link>

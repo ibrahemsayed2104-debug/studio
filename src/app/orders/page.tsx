@@ -40,7 +40,7 @@ export default function OrdersPage() {
                 <TableHead>رقم الطلب</TableHead>
                 <TableHead>التاريخ</TableHead>
                 <TableHead>الحالة</TableHead>
-                <TableHead className="text-left">الإجمالي</TableHead>
+                <TableHead className="text-left">المنتجات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -58,7 +58,7 @@ export default function OrdersPage() {
                       {order.status === 'Delivered' ? 'تم التوصيل' : order.status === 'Shipped' ? 'تم الشحن' : 'قيد المعالجة'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-left">{order.total} ر.س</TableCell>
+                  <TableCell className="text-left">{order.items.reduce((acc, item) => acc + item.quantity, 0)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 
 
 export default function CheckoutPage() {
-  const { cartItems, cartTotal, itemCount, clearCart } = useCart();
+  const { cartItems, itemCount, clearCart } = useCart();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -120,7 +120,7 @@ export default function CheckoutPage() {
           <Card className="sticky top-20">
             <CardHeader>
               <CardTitle className="font-headline">ملخص الطلب</CardTitle>
-            </CardHeader>d
+            </CardHeader>
             <CardContent className="space-y-4">
               {cartItems.map((item) => (
                 <div key={item.id} className="flex justify-between items-start gap-4">
@@ -133,22 +133,12 @@ export default function CheckoutPage() {
                       <p className="text-sm text-muted-foreground">الكمية: {item.quantity}</p>
                     </div>
                   </div>
-                  <p className="font-semibold">{item.product.price * item.quantity} ر.س</p>
                 </div>
               ))}
               <Separator />
-              <div className="flex justify-between">
-                <p>المجموع الفرعي</p>
-                <p>{cartTotal} ر.س</p>
-              </div>
-              <div className="flex justify-between">
-                <p>الشحن</p>
-                <p>مجاني</p>
-              </div>
-              <Separator />
               <div className="flex justify-between font-bold text-lg">
-                <p>المجموع الكلي</p>
-                <p>{cartTotal} ر.س</p>
+                <p>إجمالي المنتجات</p>
+                <p>{itemCount}</p>
               </div>
             </CardContent>
             <CardFooter>

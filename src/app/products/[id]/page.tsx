@@ -51,7 +51,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             {product.name}
           </h1>
           <p className="mt-4 text-muted-foreground text-lg">{product.description}</p>
-          <p className="mt-6 text-3xl font-bold text-primary">{product.price} ر.س</p>
+          
+          <p className="mt-6 text-lg text-primary">لطلب هذا المنتج، يرجى تخصيصه وإضافته إلى السلة.</p>
 
           <Separator className="my-8" />
 

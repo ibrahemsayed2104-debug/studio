@@ -23,8 +23,8 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
         <div className="p-4">
           <h3 className="font-headline font-semibold text-lg truncate text-foreground">{product.name}</h3>
-          <p className="text-muted-foreground mt-2 text-primary font-bold">
-            {product.price} ر.س
+          <p className="text-muted-foreground mt-2 text-sm">
+            عرض التفاصيل
           </p>
         </div>
       </Card>

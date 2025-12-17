@@ -2,7 +2,6 @@ export type Product = {
   id: string;
   name: string;
   description: string;
-  price: number;
   imageId: string;
   image: string;
   imageHint: string;
@@ -23,7 +22,6 @@ export type CartItem = {
 export type Order = {
   id: string;
   date: string;
-  total: number;
   status: 'Processing' | 'Shipped' | 'Delivered';
   items: CartItem[];
 };
