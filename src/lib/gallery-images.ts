@@ -35,7 +35,6 @@ export const galleryImages = {
   ],
   modern: [
     { id: 'mo-1', url: 'https://mannzely.com/wp-content/uploads/2024/09/%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-%D8%B7%D8%A8%D9%82%D8%AA%D9%8A%D9%86.webp', hint: 'modern curtain' },
-    { id: 'mo-2', url: 'https://sotm.info/wp-content/uploads/%D8%B3%D8%AA%D8%A7%D8%A6%D8%B122.png', hint: 'modern curtain' },
     { id: 'mo-3', url: 'https://i.pinimg.com/736x/10/ae/06/10ae0637eafbadfdb2ab86e2528e6523.jpg', hint: 'modern curtain' },
     { id: 'mo-4', url: 'https://i.pinimg.com/736x/28/c5/82/28c5826a7e70382dc78365e2626aa681.jpg', hint: 'modern curtain' },
     { id: 'mo-5', url: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj7FB0nKdpRhw2YWzDyo2EcGKn0bBqtqWyZQ4f5BIv81F5bngyBAmx3jd1xxKxYLsLKjfTGXQbE0FAdTnmCc8byTksENxavV6-sF-gTVpTmnh_fLMRBhuUDYiTzQukko8SNTfAv7wWKTVp88-d0Or6_sEy1qIQNDMSJnuVIIL6L0dUP-pRsYQLVDoEOF15r/s692/%D8%B3%D8%AA%D8%A7%D8%B1%D8%A6%D8%B1%20%D9%85%D9%88%D8%AF%D8%B1%D9%86%20%D9%84%D8%B9%D8%A7%D9%85%202024%20(3).jpg', hint: 'modern curtain' },
