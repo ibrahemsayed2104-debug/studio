@@ -12,6 +12,7 @@ import { CartView } from '@/components/cart-view';
 import { useCart } from '@/context/cart-context';
 import { Badge } from '@/components/ui/badge';
 import { siteConfig } from '@/lib/config';
+import { AuthButton } from '../auth-button';
 
 const navLinks = [
   { href: '/', label: 'الرئيسية' },
@@ -48,8 +49,9 @@ export function Header() {
             ))}
           </nav>
           
-          <div className="flex items-center gap-4">
-             <Sheet>
+          <div className="flex items-center gap-2">
+            <AuthButton />
+            <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
                   <ShoppingCart className="h-5 w-5" />

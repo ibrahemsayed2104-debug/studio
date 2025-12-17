@@ -1,5 +1,101 @@
+
 {
   "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "type": "object",
+      "description": "Represents a user's public profile information.",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The unique ID of the user, matching the Firebase Auth UID."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The user's public display name."
+        },
+        "photoURL": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the user's profile picture."
+        }
+      },
+      "required": ["uid", "email"]
+    },
+    "Order": {
+      "title": "Order",
+      "type": "object",
+      "description": "Represents an order placed by a user.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who placed the order."
+        },
+        "orderDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the order was placed."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the order.",
+          "enum": ["Processing", "Shipped", "Delivered", "Cancelled"]
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The total amount of the order."
+        },
+        "customerInfo": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "phone": { "type": "string" },
+            "address": { "type": "string" },
+            "city": { "type": "string" },
+            "postalCode": { "type": "string" }
+          }
+        },
+        "orderItems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/entities/OrderItem"
+          }
+        }
+      },
+      "required": ["userId", "orderDate", "status", "orderItems", "customerInfo"]
+    },
+    "OrderItem": {
+      "title": "Order Item",
+      "type": "object",
+      "description": "Represents a single item within an order.",
+      "properties": {
+        "curtainId": {
+          "type": "string",
+          "description": "The ID of the product."
+        },
+        "name": {
+          "type": "string"
+        },
+        "quantity": {
+          "type": "number"
+        },
+        "customization": {
+          "type": "object",
+          "properties": {
+            "fabric": { "type": "string" },
+            "size": { "type": "string" },
+            "color": { "type": "string" },
+            "style": { "type": "string" }
+          }
+        }
+      },
+      "required": ["curtainId", "name", "quantity", "customization"]
+    },
     "Curtain": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Curtain",
@@ -22,156 +118,13 @@
           "type": "string",
           "description": "URL of the curtain image.",
           "format": "uri"
-        },
-        "price": {
-          "type": "number",
-          "description": "Price of the curtain."
-        },
-        "fabric": {
-          "type": "string",
-          "description": "Fabric of the curtain."
-        },
-        "size": {
-          "type": "string",
-          "description": "Size of the curtain."
-        },
-        "color": {
-          "type": "string",
-          "description": "Color of the curtain."
-        },
-        "style": {
-          "type": "string",
-          "description": "Style of the curtain."
         }
       },
       "required": [
         "id",
         "name",
         "description",
-        "imageUrl",
-        "price",
-        "fabric",
-        "size",
-        "color",
-        "style"
-      ]
-    },
-    "User": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User",
-      "type": "object",
-      "description": "Represents a user of the application.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the user."
-        },
-        "firstName": {
-          "type": "string",
-          "description": "First name of the user."
-        },
-        "lastName": {
-          "type": "string",
-          "description": "Last name of the user."
-        },
-        "email": {
-          "type": "string",
-          "description": "Email address of the user.",
-          "format": "email"
-        },
-        "phone": {
-          "type": "string",
-          "description": "Phone number of the user."
-        },
-        "address": {
-          "type": "string",
-          "description": "Address of the user."
-        }
-      },
-      "required": [
-        "id",
-        "firstName",
-        "lastName",
-        "email"
-      ]
-    },
-    "Order": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Order",
-      "type": "object",
-      "description": "Represents an order placed by a user.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the order."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to the User who placed the order. (Relationship: User 1:N Order)"
-        },
-        "orderDate": {
-          "type": "string",
-          "description": "Date when the order was placed.",
-          "format": "date-time"
-        },
-        "totalAmount": {
-          "type": "number",
-          "description": "Total amount of the order."
-        },
-        "status": {
-          "type": "string",
-          "description": "Status of the order (e.g., pending, processing, shipped, delivered)."
-        },
-        "orderItems": {
-          "type": "array",
-          "description": "List of order items in the order.",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "orderDate",
-        "totalAmount",
-        "status",
-        "orderItems"
-      ]
-    },
-    "OrderItem": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "OrderItem",
-      "type": "object",
-      "description": "Represents an item in an order.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the order item."
-        },
-        "orderId": {
-          "type": "string",
-          "description": "Reference to the Order this item belongs to. (Relationship: Order 1:N OrderItem)"
-        },
-        "curtainId": {
-          "type": "string",
-          "description": "Reference to the Curtain being ordered. (Relationship: Curtain 1:N OrderItem)"
-        },
-        "quantity": {
-          "type": "number",
-          "description": "Quantity of the curtain ordered."
-        },
-        "price": {
-          "type": "number",
-          "description": "Price of the curtain at the time of order."
-        }
-      },
-      "required": [
-        "id",
-        "orderId",
-        "curtainId",
-        "quantity",
-        "price"
+        "imageUrl"
       ]
     },
     "ContactFormSubmission": {
@@ -180,10 +133,6 @@
       "type": "object",
       "description": "Represents a submission from the contact form.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the contact form submission."
-        },
         "name": {
           "type": "string",
           "description": "Name of the person submitting the form."
@@ -204,7 +153,6 @@
         }
       },
       "required": [
-        "id",
         "name",
         "email",
         "message",
@@ -214,105 +162,41 @@
   },
   "auth": {
     "providers": [
-      "password",
-      "anonymous"
+      "google.com"
     ]
   },
   "firestore": {
-    "structure": [
+    "collections": [
       {
         "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profile information.  The 'userId' is the Firebase Auth UID.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The Firebase Auth UID of the user."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/orders/{orderId}",
-        "definition": {
-          "entityName": "Order",
-          "schema": {
-            "$ref": "#/backend/entities/Order"
-          },
-          "description": "Stores orders placed by the user. Orders are nested under the user document for easy retrieval and security.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The Firebase Auth UID of the user who placed the order."
+        "schema": {
+          "$ref": "#/entities/UserProfile"
+        },
+        "description": "Stores user profile information. The `userId` is the Firebase Auth UID.",
+        "subcollections": [
+          {
+            "path": "/orders/{orderId}",
+            "schema": {
+              "$ref": "#/entities/Order"
             },
-            {
-              "name": "orderId",
-              "description": "Unique identifier for the order."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/orders/{orderId}/orderItems/{orderItemId}",
-        "definition": {
-          "entityName": "OrderItem",
-          "schema": {
-            "$ref": "#/backend/entities/OrderItem"
-          },
-          "description": "Stores individual order items for an order. Order items are nested under the order document.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The Firebase Auth UID of the user who placed the order."
-            },
-            {
-              "name": "orderId",
-              "description": "Unique identifier for the order."
-            },
-            {
-              "name": "orderItemId",
-              "description": "Unique identifier for the order item."
-            }
-          ]
-        }
+            "description": "Stores orders for a specific user."
+          }
+        ]
       },
       {
         "path": "/curtains/{curtainId}",
-        "definition": {
-          "entityName": "Curtain",
-          "schema": {
-            "$ref": "#/backend/entities/Curtain"
-          },
-          "description": "Stores information about different curtain products available in the catalog.",
-          "params": [
-            {
-              "name": "curtainId",
-              "description": "Unique identifier for the curtain."
-            }
-          ]
-        }
+        "schema": {
+          "$ref": "#/entities/Curtain"
+        },
+        "description": "Stores the public catalog of curtain products."
       },
       {
-        "path": "/contactFormSubmissions/{contactFormSubmissionId}",
-        "definition": {
-          "entityName": "ContactFormSubmission",
-          "schema": {
-            "$ref": "#/backend/entities/ContactFormSubmission"
-          },
-          "description": "Stores contact form submissions from users.  Open Access is OK for create.  Restrict read to admins via DBAC.",
-          "params": [
-            {
-              "name": "contactFormSubmissionId",
-              "description": "Unique identifier for the contact form submission."
-            }
-          ]
-        }
+        "path": "/contactFormSubmissions/{submissionId}",
+        "schema": {
+          "$ref": "#/entities/ContactFormSubmission"
+        },
+        "description": "Stores contact form submissions."
       }
-    ],
-    "reasoning": "The Firestore structure is designed to ensure that users can only access their own order data, fulfilling the requirement of 'عاوز طلباتي انا بس اللي اشوفها مش اي حد'. It achieves Authorization Independence by structuring order data under the user's document. This approach avoids the need for `get()` calls in security rules to verify ownership, simplifying the rules and improving performance. The `orders` and `orderItems` are nested under `/users/{userId}` so authorization can be verified based on path. The structure leverages path-based ownership, ensuring that each user can only access data within their own user document. This approach effectively addresses the QAPs (Rules are not Filters) requirement, as listing orders and order items under a user's path inherently filters the data to only that user's resources. Using descriptive names facilitates debuggability."
+    ]
   }
 }

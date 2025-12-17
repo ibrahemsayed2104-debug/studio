@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { CartProvider } from '@/context/cart-context';
 import { siteConfig } from '@/lib/config';
+import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: siteConfig.name,
@@ -44,13 +45,15 @@ export default function RootLayout({
           'min-h-screen bg-background font-body antialiased'
         )}
       >
-        <CartProvider>
-          <div className="relative flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-        </CartProvider>
+        <FirebaseClientProvider>
+          <CartProvider>
+            <div className="relative flex min-h-screen flex-col">
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+          </CartProvider>
+        </FirebaseClientProvider>
         <Toaster />
       </body>
     </html>
