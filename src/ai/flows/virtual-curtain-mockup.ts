@@ -56,7 +56,7 @@ const virtualCurtainMockupFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await ai.generate({
-      model: 'googleai/gemini-2.5-flash-preview',
+      model: 'googleai/gemini-pro-vision',
       prompt: [
         dataUriToMediaPart(input.roomImage),
         {
