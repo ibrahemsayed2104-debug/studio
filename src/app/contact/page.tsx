@@ -23,6 +23,9 @@ const formSchema = z.object({
   governorate: z.string().optional(),
   city: z.string({ required_error: "الرجاء اختيار مدينة." }).min(1, "الرجاء اختيار مدينة."),
   address: z.string().min(10, "العنوان يجب أن يكون 10 أحرف على الأقل."),
+  buildingNumber: z.string().min(1, "الرجاء إدخال رقم العمارة."),
+  floorNumber: z.string().min(1, "الرجاء إدخال رقم الدور."),
+  apartmentNumber: z.string().min(1, "الرجاء إدخال رقم الشقة."),
 });
 
 export default function ContactPage() {
@@ -36,6 +39,9 @@ export default function ContactPage() {
       governorate: EGYPT_GOVERNORATES[0].governorate,
       city: "",
       address: "",
+      buildingNumber: "",
+      floorNumber: "",
+      apartmentNumber: "",
     },
   });
 
@@ -66,7 +72,8 @@ export default function ContactPage() {
 
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    let fullAddress = `${values.address}, ${values.city}`;
+    let fullAddress = `${values.address}, عمارة ${values.buildingNumber}, الدور ${values.floorNumber}, شقة ${values.apartmentNumber}\n`;
+    fullAddress += `${values.city}`;
     if (values.country === 'مصر' && values.governorate) {
         fullAddress += `, ${values.governorate}`;
     }
@@ -201,7 +208,7 @@ export default function ContactPage() {
                   name="address"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>تفاصيل العنوان (الشارع، الحي)</FormLabel>
+                      <FormLabel>تفاصيل العنوان (الشارع والحي)</FormLabel>
                       <FormControl>
                         <Input placeholder="اكتب اسم الشارع والحي هنا..." {...field} />
                       </FormControl>
@@ -209,6 +216,47 @@ export default function ContactPage() {
                     </FormItem>
                   )}
                 />
+                 <div className="grid sm:grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="buildingNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>رقم العمارة</FormLabel>
+                        <FormControl>
+                          <Input placeholder="مثال: 15" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="floorNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>الدور</FormLabel>
+                        <FormControl>
+                          <Input placeholder="مثال: 3" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <FormField
+                    control={form.control}
+                    name="apartmentNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>رقم الشقة</FormLabel>
+                        <FormControl>
+                          <Input placeholder="مثال: 12" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <Button type="submit" className="w-full font-bold" size="lg">
                   <Send className="ms-2 h-4 w-4" />
                   إرسال الطلب عبر واتساب
@@ -245,3 +293,5 @@ export default function ContactPage() {
     </div>
   );
 }
+
+    

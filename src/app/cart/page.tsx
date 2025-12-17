@@ -71,14 +71,15 @@ export default function CheckoutPage() {
     message += `الاسم: ${data.name}\n`;
     message += `رقم الهاتف: ${data.phone}\n`;
     
-    let fullAddress = `${data.address}, ${selectedCity}`;
+    let fullAddress = `${data.address}, عمارة ${data['building-number']}, الدور ${data['floor-number']}, شقة ${data['apartment-number']}\n`;
+    fullAddress += `${selectedCity}`;
     if (selectedCountry === 'مصر' && data.governorate) {
         fullAddress += `, ${data.governorate}`;
     }
     fullAddress += `, ${data.country}`;
 
     if (data['postal-code']) {
-      fullAddress += `, ${data['postal-code']}`;
+      fullAddress += `, الرمز البريدي: ${data['postal-code']}`;
     }
 
     message += `العنوان: ${fullAddress}\n\n`;
@@ -183,8 +184,22 @@ export default function CheckoutPage() {
                     )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="address">العنوان</Label>
-                  <Input id="address" name="address" required placeholder="123 شارع الملك فهد" />
+                  <Label htmlFor="address">العنوان (الشارع والحي)</Label>
+                  <Input id="address" name="address" required placeholder="مثال: شارع التسعين، حي الياسمين" />
+                </div>
+                 <div className="grid sm:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="building-number">رقم العمارة</Label>
+                        <Input id="building-number" name="building-number" required placeholder="مثال: 15" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="floor-number">الدور</Label>
+                        <Input id="floor-number" name="floor-number" required placeholder="مثال: 3" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="apartment-number">رقم الشقة</Label>
+                        <Input id="apartment-number" name="apartment-number" required placeholder="مثال: 12" />
+                    </div>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -255,3 +270,5 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+    
