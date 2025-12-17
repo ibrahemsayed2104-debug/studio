@@ -1,7 +1,7 @@
 
 export const siteConfig = {
   name: "fabrics",
-  description: "محل ستائر فاخرة وتصميمات مخصصة",
+  description: "محل ستائر فاخرة وتصميمات مخصصة.",
   contact: {
     phone: "201111148566",
     email: "contact@fabric.com",
