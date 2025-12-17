@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, ShoppingCart } from 'lucide-react';
+import { Menu, ShoppingCart, GalleryVertical, Home, Package, Smartphone, Users, Phone } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -15,11 +15,11 @@ import { siteConfig } from '@/lib/config';
 import { AuthButton } from '../auth-button';
 
 const navLinks = [
-  { href: '/', label: 'الرئيسية' },
-  { href: '/gallery', label: 'المعرض' },
-  { href: '/virtual-mockup', label: 'جرّبها في منزلك' },
-  { href: '/orders', label: 'طلباتي' },
-  { href: '/contact', label: 'تواصل معنا' },
+  { href: '/', label: 'الرئيسية', icon: Home },
+  { href: '/gallery', label: 'المعرض', icon: GalleryVertical },
+  { href: '/virtual-mockup', label: 'جرّبها في منزلك', icon: Smartphone },
+  { href: '/orders', label: 'طلباتي', icon: Package },
+  { href: '/contact', label: 'تواصل معنا', icon: Phone },
 ];
 
 export function Header() {
@@ -35,18 +35,19 @@ export function Header() {
             <span className="font-bold font-headline text-2xl">{siteConfig.name}</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-6 text-sm">
+          <nav className="hidden md:flex items-center gap-1 text-sm">
             {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  'transition-colors hover:text-foreground/80',
-                  pathname === link.href ? 'text-foreground font-semibold' : 'text-foreground/60'
-                )}
-              >
-                {link.label}
-              </Link>
+              <Button key={link.href} variant="ghost" asChild className={cn(
+                  'transition-colors',
+                  pathname === link.href ? 'text-primary font-semibold' : 'text-foreground/80 hover:text-primary'
+              )}>
+                <Link
+                  href={link.href}
+                >
+                  <link.icon className="ms-2 h-4 w-4" />
+                  {link.label}
+                </Link>
+              </Button>
             ))}
           </nav>
           
@@ -85,10 +86,11 @@ export function Header() {
                       key={link.href}
                       href={link.href}
                       className={cn(
-                        'text-lg transition-colors hover:text-foreground/80',
-                        pathname === link.href ? 'text-foreground font-semibold' : 'text-foreground/60'
+                        'text-lg transition-colors hover:text-foreground/80 flex items-center gap-3',
+                        pathname === link.href ? 'text-primary font-semibold' : 'text-foreground/60'
                       )}
                     >
+                      <link.icon className="h-5 w-5" />
                       {link.label}
                     </Link>
                   ))}

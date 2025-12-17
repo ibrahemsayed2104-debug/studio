@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { Loader2, CameraOff } from 'lucide-react';
+import { Loader2, CameraOff, GalleryVertical } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
 
 const IMAGE_WIDTH = 600;
@@ -18,9 +18,10 @@ const fetchImages = (page: number, count = 12): GalleryImage[] => {
   const seedOffset = (page - 1) * count;
   for (let i = 0; i < count; i++) {
     const seed = seedOffset + i + 1;
+    // Using a fixed search term "curtain" with picsum's seed to get varied but relevant images
     images.push({
       id: seed,
-      url: `https://picsum.photos/seed/${seed}/${IMAGE_WIDTH}/${IMAGE_HEIGHT}`,
+      url: `https://picsum.photos/seed/curtain${seed}/${IMAGE_WIDTH}/${IMAGE_HEIGHT}`,
     });
   }
   return images;
@@ -59,13 +60,22 @@ export default function GalleryPage() {
       loadMoreImages();
     }
   }, [inView, loadMoreImages, isLoading]);
+  
+  useEffect(() => {
+    // Initial load
+    loadMoreImages();
+  }, []);
+
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8 md:py-12">
       <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-headline font-bold text-foreground">
-          معرض الصور
-        </h1>
+         <div className="flex justify-center items-center gap-4">
+          <GalleryVertical className="h-10 w-10 text-primary" />
+          <h1 className="text-4xl md:text-5xl font-headline font-bold text-foreground">
+            معرض الصور
+          </h1>
+        </div>
         <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
           استكشف أحدث التصاميم والإلهامات من مجموعاتنا المختارة.
         </p>
@@ -83,7 +93,7 @@ export default function GalleryPage() {
             <div className="relative w-full rounded-lg overflow-hidden shadow-lg group border transition-all duration-300 hover:shadow-2xl hover:scale-105">
               <Image
                 src={image.url}
-                alt={`Gallery image ${image.id}`}
+                alt={`ستارة بتصميم عصري ${image.id}`}
                 width={IMAGE_WIDTH}
                 height={IMAGE_HEIGHT}
                 className="object-cover w-full h-auto"
