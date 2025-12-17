@@ -1,0 +1,149 @@
+/**
+ * This ruleset enforces a strict user-ownership model for all user-generated
+ * content, ensuring that private data like orders remains confidential. The core
+ * philosophy is that users can only access data located within their own
+ * user document tree.
+ *
+ * Data Structure:
+ * - /users/{userId}: A user's profile document. The root of their private data.
+ * - /users/{userId}/orders/{orderId}: A user's specific order history, nested
+ *   to inherit ownership rules directly from the path.
+ * - /users/{userId}/orders/{orderId}/orderItems/{orderItemId}: The items
+ *   within a specific order.
+ * - /curtains/{curtainId}: A top-level collection for the public product
+ *   catalog, readable by everyone.
+ * - /contactFormSubmissions/{contactFormSubmissionId}: A write-only collection
+ *   for public contact form submissions.
+ *
+ * Key Security Decisions:
+ * - User Isolation: The rules are primarily based on the `{userId}` wildcard
+ *   in the path. This provides a simple, performant, and secure way to guarantee
+ *   that users can only see their own data, directly fulfilling the user's
+ *   request: "I want only me to see my orders, not anyone else."
+ * - No User Listing: It is not possible for any client to list all documents
+ *   in the `/users` collection, preventing user enumeration attacks.
+ * - Denormalization for Authorization: The data structure is designed to avoid
+ *   costly `get()` calls in rules. By nesting `orders` under `users`, the
+ *   ownership is implied by the path itself. On creation, documents must contain
+ *   an internal ID that matches the ID from the path to ensure relational integrity.
+ * - Public vs. Private Data: Data is segregated by collection. Private data is
+ *   nested under `/users/{userId}`, while public data like the product catalog
+ *   (`/curtains`) is in a separate top-level collection. This is more secure and
+ *   performant than filtering a single collection with a boolean flag.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =====================================================================
+    // Helper Functions
+    // =====================================================================
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the currently authenticated user's UID matches the provided userId.
+     * This is the primary function for establishing document ownership.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * A robust check for update/delete operations.
+     * Ensures the user is the owner AND the document actually exists.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    // =====================================================================
+    // Collection Rules
+    // =====================================================================
+
+    /**
+     * @description Manages user profile documents.
+     * @path /users/{userId}
+     * @allow (get, update) A signed-in user with UID 'user_abc' can read or update their own document at `/users/user_abc`.
+     * @allow (create) A new user with UID 'user_xyz' can create their profile at `/users/user_xyz`.
+     * @deny (list) No user can list all documents in the `/users` collection.
+     * @deny (get) User 'user_abc' cannot get the document for 'user_xyz'.
+     * @principle Restricts access to a user's own data tree and prevents user enumeration.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Manages user orders. Each order is private to the user who created it.
+     * @path /users/{userId}/orders/{orderId}
+     * @allow (get, list, create) User 'user_abc' can get, list, or create orders within `/users/user_abc/orders`.
+     * @deny (get) User 'user_xyz' cannot read an order at `/users/user_abc/orders/order_123`.
+     * @deny (create) User 'user_xyz' cannot create an order at `/users/user_abc/orders/order_456`.
+     * @principle Enforces strict ownership for all user-specific data using path-based security.
+     */
+    match /users/{userId}/orders/{orderId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Manages the items within a user's order.
+     * @path /users/{userId}/orders/{orderId}/orderItems/{orderItemId}
+     * @allow (get, list) User 'user_abc' can read and list the items within their own order at `/users/user_abc/orders/order_123/orderItems`.
+     * @deny (update) User 'user_xyz' cannot update an order item at `/users/user_abc/orders/order_123/orderItems/item_456`.
+     * @principle Access is inherited from the parent document's path, securing the entire data subtree under the user's ownership.
+     */
+    match /users/{userId}/orders/{orderId}/orderItems/{orderItemId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.orderId == orderId;
+      allow update: if isExistingOwner(userId) && request.resource.data.orderId == resource.data.orderId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Defines rules for the public curtain product catalog.
+     * @path /curtains/{curtainId}
+     * @allow (get, list) Any user, signed-in or not, can view the product catalog.
+     * @deny (create, update, delete) All write operations are denied because the data schema is missing an ownership field.
+     * @principle Provides public read access for a product catalog while locking down writes until a proper admin/ownership model is implemented.
+     */
+    match /curtains/{curtainId} {
+      allow get: if true;
+      allow list: if true;
+      // CRITICAL: Cannot implement owner-only writes. The 'Curtain' entity is missing an 'ownerId' or 'authorId' field.
+      // Writes are disabled to prevent unauthorized data modification.
+      allow create: if false; // TODO: Add admin or owner validation once the schema is updated with an ownership field.
+      allow update: if false; // TODO: Add admin or owner validation once the schema is updated with an ownership field.
+      allow delete: if false; // TODO: Add admin or owner validation once the schema is updated with an ownership field.
+    }
+
+    /**
+     * @description Manages submissions from the public contact form.
+     * @path /contactFormSubmissions/{contactFormSubmissionId}
+     * @allow (create) Any user, including unauthenticated visitors, can submit the contact form.
+     * @deny (get, list, update, delete) No user can read, update, or delete submissions. This data is for backend processing only.
+     * @principle Secures sensitive user messages by making the collection write-only for clients.
+     */
+    match /contactFormSubmissions/{contactFormSubmissionId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if true;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}
