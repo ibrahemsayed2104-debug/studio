@@ -34,16 +34,19 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router, redirect]);
 
-  useEffect(() => {
-    if (auth && recaptchaContainerRef.current && !window.recaptchaVerifier) {
+  const getRecaptchaVerifier = () => {
+    if (!auth) return null;
+    if (!window.recaptchaVerifier) {
+      if (!recaptchaContainerRef.current) return null;
       window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
         'size': 'invisible',
         'callback': (response: any) => {
-          // reCAPTCHA solved, allow signInWithPhoneNumber.
+          // reCAPTCHA solved.
         }
       });
     }
-  }, [auth]);
+    return window.recaptchaVerifier;
+  }
 
   const saveUserToFirestore = (user: any) => {
     if (!firestore) return;
@@ -86,7 +89,8 @@ export default function LoginPage() {
   };
 
   const handlePhoneSignIn = async () => {
-    if (!window.recaptchaVerifier || !auth) {
+    const recaptchaVerifier = getRecaptchaVerifier();
+    if (!recaptchaVerifier || !auth) {
       toast({ variant: "destructive", title: "خطأ", description: "لم يتم تهيئة reCAPTCHA بشكل صحيح." });
       return;
     }
@@ -94,16 +98,22 @@ export default function LoginPage() {
     try {
       let formattedPhoneNumber = phoneNumber;
       if (!phoneNumber.startsWith('+')) {
-        // Assuming numbers starting with 0 are local Egyptian numbers
         if (phoneNumber.startsWith('0')) {
           formattedPhoneNumber = '+2' + phoneNumber;
         } else {
-          // Assuming numbers without 0 are also Egyptian numbers needing the code
           formattedPhoneNumber = '+20' + phoneNumber;
         }
       }
+      
+      // Fix for Egyptian numbers starting with 0 but without country code
+      if (formattedPhoneNumber.startsWith('+20')) {
+        // do nothing
+      } else if (formattedPhoneNumber.startsWith('+2')) {
+         formattedPhoneNumber = `+20${phoneNumber.substring(2)}`;
+      }
 
-      const result = await signInWithPhoneNumber(auth, formattedPhoneNumber, window.recaptchaVerifier);
+
+      const result = await signInWithPhoneNumber(auth, formattedPhoneNumber, recaptchaVerifier);
       setConfirmationResult(result);
       setIsOtpSent(true);
       toast({ title: "تم إرسال الرمز", description: `تم إرسال رمز التحقق إلى ${formattedPhoneNumber}.` });
@@ -114,14 +124,12 @@ export default function LoginPage() {
         title: "حدث خطأ",
         description: "فشل إرسال رمز التحقق. تأكد من صحة الرقم والمحاولة مرة أخرى.",
       });
-      // Reset reCAPTCHA
-      if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.render().then((widgetId) => {
-          if (typeof grecaptcha !== 'undefined' && grecaptcha.reset) {
-            grecaptcha.reset(widgetId);
-          }
-        });
-      }
+      // It's important to reset the verifier on error.
+       if (window.grecaptcha && window.recaptchaVerifier) {
+         window.recaptchaVerifier.render().then((widgetId) => {
+           window.grecaptcha.reset(widgetId);
+         });
+       }
     }
   };
 
@@ -135,7 +143,7 @@ export default function LoginPage() {
 
       toast({ title: "تم تسجيل الدخول بنجاح", description: `مرحباً بك!` });
       router.replace(redirect);
-    } catch (error: any) {
+    } catch (error: any) => {
       console.error("OTP Error:", error);
       toast({
         variant: "destructive",
