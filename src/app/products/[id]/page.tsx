@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { useCart } from '@/context/cart-context';
-import { PRODUCTS, FABRICS, SIZES, COLORS, STYLES } from '@/lib/data';
+import { PRODUCTS, fabrics, SIZES, COLORS, STYLES } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ShoppingCart } from 'lucide-react';
@@ -14,7 +14,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const product = PRODUCTS.find((p) => p.id === params.id);
   
   const [quantity, setQuantity] = useState(1);
-  const [fabric, setFabric] = useState(FABRICS[0]);
+  const [fabric, setFabric] = useState(fabrics[0]);
   const [size, setSize] = useState(SIZES[0]);
   const [color, setColor] = useState(COLORS[0]);
   const [style, setStyle] = useState(STYLES[0]);
@@ -64,7 +64,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 <Select value={fabric} onValueChange={setFabric}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {FABRICS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                    {fabrics.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>

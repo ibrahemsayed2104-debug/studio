@@ -103,7 +103,7 @@ export const MOCK_ORDERS: Order[] = [
     }
 ];
 
-export const FABRICS = ['شيفون', 'قطن', 'مخمل', 'كتان', 'قطيفة'];
+export const fabrics = ['شيفون', 'قطن', 'مخمل', 'كتان', 'قطيفة'];
 export const SIZES = ['150x250 سم', '200x250 سم', '300x250 سم', 'حجم مخصص'];
 export const COLORS = ['بيج', 'عنابي', 'رمادي', 'أبيض', 'كحلي', 'أخضر'];
 export const STYLES = ['كلاسيك', 'مودرن', 'بسيط', 'روماني'];
