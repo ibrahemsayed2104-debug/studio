@@ -3,8 +3,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { GoogleAuthProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
-import { useAuth, useUser, setDocumentNonBlocking, useFirestore } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useAuth, useUser, useFirestore } from '@/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FcGoogle } from 'react-icons/fc';
@@ -51,7 +51,7 @@ export default function LoginPage() {
   }, [auth]);
 
 
-  const saveUserToFirestore = (user: any) => {
+  const saveUserToFirestore = async (user: any) => {
     if (!firestore) return;
     const userDocRef = doc(firestore, 'users', user.uid);
     const userProfile = {
@@ -61,7 +61,8 @@ export default function LoginPage() {
       photoURL: user.photoURL,
       phoneNumber: user.phoneNumber,
     };
-    setDocumentNonBlocking(userDocRef, userProfile, { merge: true });
+    // Use await to ensure user data is saved before redirecting
+    await setDoc(userDocRef, userProfile, { merge: true });
   };
   
   const handleGoogleSignIn = async () => {
@@ -71,7 +72,8 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
-      saveUserToFirestore(user);
+      // Wait for user data to be saved before proceeding
+      await saveUserToFirestore(user);
       
       toast({
         title: "تم تسجيل الدخول بنجاح",
@@ -128,7 +130,7 @@ export default function LoginPage() {
       const result = await confirmationResult.confirm(otp);
       const user = result.user;
 
-      saveUserToFirestore(user);
+      await saveUserToFirestore(user);
 
       toast({ title: "تم تسجيل الدخول بنجاح", description: `مرحباً بك!` });
       router.replace(redirect);
