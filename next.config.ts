@@ -55,6 +55,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'upload.3dlat.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

@@ -40,5 +40,6 @@ export const galleryImages = {
     { id: 'mo-4', url: 'https://i.pinimg.com/736x/28/c5/82/28c5826a7e70382dc78365e2626aa681.jpg', hint: 'modern curtain' },
     { id: 'mo-5', url: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj7FB0nKdpRhw2YWzDyo2EcGKn0bBqtqWyZQ4f5BIv81F5bngyBAmx3jd1xxKxYLsLKjfTGXQbE0FAdTnmCc8byTksENxavV6-sF-gTVpTmnh_fLMRBhuUDYiTzQukko8SNTfAv7wWKTVp88-d0Or6_sEy1qIQNDMSJnuVIIL6L0dUP-pRsYQLVDoEOF15r/s692/%D8%B3%D8%AA%D8%A7%D8%B1%D8%A6%D8%B1%20%D9%85%D9%88%D8%AF%D8%B1%D9%86%20%D9%84%D8%B9%D8%A7%D9%85%202024%20(3).jpg', hint: 'modern curtain' },
     { id: 'mo-6', url: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEieoAfAhjxhxrwdpFYXF4XFCCa0PmNGG9Z9ty06D8QBtL3XEY7w_oj7R18FUjs0y-GsiLbKKwsFTyuMs5EdRQbyDRjDQ9yymlUVUtN8nhWyOdCQaGOy12WxWLI2-HknVQjEfahKvY85XXtmbD0ajeptA-7KKyMEmRI8gI0RkdxClr6RTOkW0imxzhedudR9/s679/%D8%B3%D8%AA%D8%A7%D8%B1%D8%A6%D8%B1%20%D9%85%D9%88%D8%AF%D8%B1%D9%86%20%D9%84%D8%B9%D8%A7%D9%85%202024%20(46).jpg', hint: 'modern curtain' },
+    { id: 'mo-7', url: 'https://upload.3dlat.com/uploads/3dlat.com_09_19_e90c_dbdd3429633c20.jpg', hint: 'modern curtain' },
   ],
 };
