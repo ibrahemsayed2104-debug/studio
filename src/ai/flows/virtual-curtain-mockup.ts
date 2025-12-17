@@ -67,6 +67,7 @@ const virtualCurtainMockupFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return {mockupImage: output?.mockupImage!};
+    const {media} = output as any;
+    return {mockupImage: media.url!};
   }
 );
