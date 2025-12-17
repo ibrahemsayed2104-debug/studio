@@ -61,6 +61,7 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
+      if(!auth) return;
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
@@ -85,16 +86,27 @@ export default function LoginPage() {
   };
 
   const handlePhoneSignIn = async () => {
-    if (!window.recaptchaVerifier) {
+    if (!window.recaptchaVerifier || !auth) {
       toast({ variant: "destructive", title: "خطأ", description: "لم يتم تهيئة reCAPTCHA بشكل صحيح." });
       return;
     }
 
     try {
-      const result = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
+      let formattedPhoneNumber = phoneNumber;
+      if (!phoneNumber.startsWith('+')) {
+        // Assuming numbers starting with 0 are local Egyptian numbers
+        if (phoneNumber.startsWith('0')) {
+          formattedPhoneNumber = '+2' + phoneNumber;
+        } else {
+          // Assuming numbers without 0 are also Egyptian numbers needing the code
+          formattedPhoneNumber = '+20' + phoneNumber;
+        }
+      }
+
+      const result = await signInWithPhoneNumber(auth, formattedPhoneNumber, window.recaptchaVerifier);
       setConfirmationResult(result);
       setIsOtpSent(true);
-      toast({ title: "تم إرسال الرمز", description: "تم إرسال رمز التحقق إلى هاتفك." });
+      toast({ title: "تم إرسال الرمز", description: `تم إرسال رمز التحقق إلى ${formattedPhoneNumber}.` });
     } catch (error: any) {
       console.error("Phone Auth Error:", error);
       toast({
@@ -102,6 +114,14 @@ export default function LoginPage() {
         title: "حدث خطأ",
         description: "فشل إرسال رمز التحقق. تأكد من صحة الرقم والمحاولة مرة أخرى.",
       });
+      // Reset reCAPTCHA
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.render().then((widgetId) => {
+          if (typeof grecaptcha !== 'undefined') {
+            grecaptcha.reset(widgetId);
+          }
+        });
+      }
     }
   };
 
@@ -147,7 +167,7 @@ export default function LoginPage() {
                   <Input 
                     id="phone" 
                     type="tel" 
-                    placeholder="+9665XXXXXXXX" 
+                    placeholder="01xxxxxxxxx" 
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                   />
@@ -204,5 +224,6 @@ export default function LoginPage() {
 declare global {
   interface Window {
     recaptchaVerifier?: RecaptchaVerifier;
+    grecaptcha?: any;
   }
 }
