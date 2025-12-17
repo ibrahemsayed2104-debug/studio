@@ -7,7 +7,7 @@ import { Footer } from '@/components/layout/footer';
 import { CartProvider } from '@/context/cart-context';
 
 export const metadata: Metadata = {
-  title: 'ستارتك (StarTak)',
+  title: 'Fabric',
   description: 'محل ستائر فاخرة وتصميمات مخصصة',
   icons: {
     icon: '/favicon.ico',

@@ -29,7 +29,7 @@ export function Header() {
         <div className="flex-1 flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-2 rtl:space-x-reverse">
             <CurtainIcon className="h-6 w-6 text-primary" />
-            <span className="font-bold font-headline text-2xl">ستارتك</span>
+            <span className="font-bold font-headline text-2xl">Fabric</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-6 text-sm">
@@ -74,7 +74,7 @@ export function Header() {
                 <div className="flex flex-col gap-6 pt-10">
                   <Link href="/" className="flex items-center space-x-2 rtl:space-x-reverse">
                     <CurtainIcon className="h-6 w-6 text-primary" />
-                    <span className="font-bold font-headline text-2xl">ستارتك</span>
+                    <span className="font-bold font-headline text-2xl">Fabric</span>
                   </Link>
                   {navLinks.map((link) => (
                     <Link
