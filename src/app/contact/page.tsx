@@ -9,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Send } from "lucide-react";
+import { siteConfig } from "@/lib/config";
 
 const formSchema = z.object({
   name: z.string().min(2, "الاسم يجب أن يكون حرفين على الأقل."),
@@ -28,9 +29,8 @@ export default function ContactPage() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const phoneWhatsApp = "201111148566"; // Your WhatsApp number with country code, without + or 00
     const message = `طلب جديد:\n\nالاسم: ${values.name}\nرقم الهاتف: ${values.phone}\n\nالعنوان:\n${values.address}`;
-    const whatsappUrl = `https://wa.me/${phoneWhatsApp}?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/${siteConfig.contact.phone}?text=${encodeURIComponent(message)}`;
     
     window.open(whatsappUrl, '_blank');
 

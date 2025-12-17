@@ -11,6 +11,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingCart, Wallet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { siteConfig } from '@/lib/config';
 
 
 export default function CheckoutPage() {
@@ -24,7 +25,7 @@ export default function CheckoutPage() {
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
 
-    let message = `*طلب جديد من Fabric*\n\n`;
+    let message = `*طلب جديد من ${siteConfig.name}*\n\n`;
     message += `*معلومات العميل:*\n`;
     message += `الاسم: ${data.name}\n`;
     message += `البريد الإلكتروني: ${data.email}\n`;
@@ -41,8 +42,7 @@ export default function CheckoutPage() {
     message += `*إجمالي عدد المنتجات:* ${itemCount}\n\n`;
     message += `*طريقة الدفع:* الدفع عند الاستلام (كاش)`;
 
-    const phoneWhatsApp = "201111148566"; // Your WhatsApp number
-    const whatsappUrl = `https://wa.me/${phoneWhatsApp}?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/${siteConfig.contact.phone}?text=${encodeURIComponent(message)}`;
     
     window.open(whatsappUrl, '_blank');
 

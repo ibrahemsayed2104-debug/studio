@@ -5,10 +5,11 @@ import { Toaster } from '@/components/ui/toaster';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { CartProvider } from '@/context/cart-context';
+import { siteConfig } from '@/lib/config';
 
 export const metadata: Metadata = {
-  title: 'Fabric',
-  description: 'محل ستائر فاخرة وتصميمات مخصصة',
+  title: siteConfig.name,
+  description: siteConfig.description,
   icons: {
     icon: '/favicon.ico',
   },

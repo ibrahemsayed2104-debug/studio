@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Phone, Mail, MapPin } from 'lucide-react';
 import { CurtainIcon } from '@/components/icons';
+import { siteConfig } from '@/lib/config';
 
 const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
@@ -22,10 +23,10 @@ export function Footer() {
           <div className="md:col-span-1">
             <Link href="/" className="flex items-center space-x-2 rtl:space-x-reverse mb-4">
               <CurtainIcon className="h-8 w-8 text-primary" />
-              <span className="font-bold font-headline text-2xl">Fabric</span>
+              <span className="font-bold font-headline text-2xl">{siteConfig.name}</span>
             </Link>
             <p className="text-sm text-muted-foreground">
-              نقدم لكم أجود أنواع الستائر بتصاميم عصرية وكلاسيكية تناسب جميع الأذواق.
+              {siteConfig.description}
             </p>
           </div>
           <div>
@@ -42,29 +43,29 @@ export function Footer() {
             <ul className="mt-4 space-y-3">
               <li className="flex items-start">
                 <MapPin className="h-5 w-5 shrink-0 text-primary mt-0.5" />
-                <span className="ms-3 text-sm">المقطم - الهضبة الوسطي - امام الجامعه الحديثة</span>
+                <span className="ms-3 text-sm">{siteConfig.contact.address}</span>
               </li>
               <li className="flex items-center">
                 <Phone className="h-5 w-5 shrink-0 text-primary" />
-                <a href="https://wa.me/9661111148566" target="_blank" rel="noopener noreferrer" className="ms-3 text-sm hover:text-primary transition-colors">01111148566</a>
+                <a href={siteConfig.contact.whatsappUrl} target="_blank" rel="noopener noreferrer" className="ms-3 text-sm hover:text-primary transition-colors">{siteConfig.contact.phone}</a>
               </li>
               <li className="flex items-center">
                 <Mail className="h-5 w-5 shrink-0 text-primary" />
-                <span className="ms-3 text-sm">contact@fabric.com</span>
+                <span className="ms-3 text-sm">{siteConfig.contact.email}</span>
               </li>
             </ul>
           </div>
           <div>
             <h3 className="font-headline font-semibold tracking-wider uppercase">تابعنا</h3>
             <div className="flex mt-4 space-x-4 rtl:space-x-reverse">
-              <Link href="#" className="text-muted-foreground hover:text-primary transition-colors"><FacebookIcon className="h-6 w-6" /></Link>
-              <Link href="#" className="text-muted-foreground hover:text-primary transition-colors"><InstagramIcon className="h-6 w-6" /></Link>
-              <Link href="#" className="text-muted-foreground hover:text-primary transition-colors"><TwitterIcon className="h-6 w-6" /></Link>
+              <Link href={siteConfig.social.facebook} className="text-muted-foreground hover:text-primary transition-colors"><FacebookIcon className="h-6 w-6" /></Link>
+              <Link href={siteConfig.social.instagram} className="text-muted-foreground hover:text-primary transition-colors"><InstagramIcon className="h-6 w-6" /></Link>
+              <Link href={siteConfig.social.twitter} className="text-muted-foreground hover:text-primary transition-colors"><TwitterIcon className="h-6 w-6" /></Link>
             </div>
           </div>
         </div>
         <div className="mt-12 border-t border-border pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {currentYear} Fabric. جميع الحقوق محفوظة.</p>
+          <p>&copy; {currentYear} {siteConfig.name}. جميع الحقوق محفوظة.</p>
         </div>
       </div>
     </footer>
