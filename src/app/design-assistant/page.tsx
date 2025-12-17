@@ -42,7 +42,7 @@ export default function DesignAssistantPage() {
   };
 
   const getProductImage = (productId: string) => {
-    return PRODUCTS.find(p => p.id === productId)?.image || '';
+    return PRODUCTS.find(p => p.id === productId)?.image || null;
   };
 
   return (
@@ -128,10 +128,14 @@ export default function DesignAssistantPage() {
                   <div>
                     <h3 className="font-bold font-headline text-lg flex items-center gap-2 mb-4"><ShoppingBag className="text-primary" /> منتجات مقترحة لك</h3>
                     <div className="grid sm:grid-cols-2 gap-4">
-                        {advice.recommendedProducts.map(product => (
+                        {advice.recommendedProducts.map(product => {
+                           const productImage = getProductImage(product.id);
+                           return (
                             <Card key={product.id} className="overflow-hidden">
-                                <div className="relative h-40 w-full">
-                                    <Image src={getProductImage(product.id)} alt={product.name} fill className="object-cover" />
+                                <div className="relative h-40 w-full bg-muted">
+                                    {productImage && (
+                                      <Image src={productImage} alt={product.name} fill className="object-cover" />
+                                    )}
                                 </div>
                                 <CardHeader className="p-4">
                                     <CardTitle className="text-lg font-headline">{product.name}</CardTitle>
@@ -143,7 +147,8 @@ export default function DesignAssistantPage() {
                                     </Button>
                                 </CardFooter>
                             </Card>
-                        ))}
+                           );
+                        })}
                     </div>
                   </div>
                 </div>
