@@ -10,14 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Send, MapPin, Navigation, ChevronsUpDown, Check } from "lucide-react";
+import { Send, MapPin, Navigation } from "lucide-react";
 import { siteConfig } from "@/lib/config";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SAUDI_CITIES, EGYPT_GOVERNORATES, COUNTRIES } from "@/lib/data";
 import { Separator } from "@/components/ui/separator";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   name: z.string().min(2, "الاسم يجب أن يكون حرفين على الأقل."),
@@ -46,8 +43,6 @@ export default function ContactPage() {
   const selectedGovernorate = form.watch("governorate");
 
   const [cities, setCities] = useState<string[]>([]);
-  const [cityPopoverOpen, setCityPopoverOpen] = useState(false);
-
 
   useEffect(() => {
     if (selectedCountry === 'مصر') {
@@ -181,58 +176,22 @@ export default function ContactPage() {
                   control={form.control}
                   name="city"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col">
+                    <FormItem>
                       <FormLabel>المدينة</FormLabel>
-                      <Popover open={cityPopoverOpen} onOpenChange={setCityPopoverOpen}>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              className={cn(
-                                "w-full justify-between",
-                                !field.value && "text-muted-foreground"
-                              )}
-                              disabled={cities.length === 0}
-                            >
-                              {field.value
-                                ? cities.find(
-                                    (city) => city === field.value
-                                  )
-                                : "اختر مدينة"}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                          <Command>
-                            <CommandInput placeholder="ابحث عن مدينة..." />
-                            <CommandEmpty>لم يتم العثور على مدينة.</CommandEmpty>
-                            <CommandGroup>
-                              {cities.map((city) => (
-                                <CommandItem
-                                  value={city}
-                                  key={city}
-                                  onSelect={() => {
-                                    form.setValue("city", city)
-                                    setCityPopoverOpen(false)
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      city === field.value
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                  {city}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={cities.length === 0}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر المدينة" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {cities.map((city) => (
+                            <SelectItem key={city} value={city}>
+                              {city}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

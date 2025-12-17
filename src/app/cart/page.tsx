@@ -10,14 +10,11 @@ import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingCart, Wallet, ChevronsUpDown, Check } from 'lucide-react';
+import { ShoppingCart, Wallet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { siteConfig } from '@/lib/config';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SAUDI_CITIES, EGYPT_GOVERNORATES, COUNTRIES } from '@/lib/data';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
-import { cn } from '@/lib/utils';
 
 export default function CheckoutPage() {
   const { cartItems, itemCount, clearCart } = useCart();
@@ -28,7 +25,6 @@ export default function CheckoutPage() {
   const [selectedGovernorate, setSelectedGovernorate] = useState('');
   const [cities, setCities] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState('');
-  const [cityPopoverOpen, setCityPopoverOpen] = useState(false);
   
   useEffect(() => {
     if (selectedCountry === 'مصر') {
@@ -193,48 +189,16 @@ export default function CheckoutPage() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="city">المدينة</Label>
-                    <Popover open={cityPopoverOpen} onOpenChange={setCityPopoverOpen}>
-                        <PopoverTrigger asChild>
-                            <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={cityPopoverOpen}
-                            className="w-full justify-between"
-                            disabled={cities.length === 0}
-                            >
-                            {selectedCity
-                                ? cities.find((city) => city === selectedCity)
-                                : "اختر مدينة..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                            <Command>
-                            <CommandInput placeholder="ابحث عن مدينة..." />
-                            <CommandEmpty>لم يتم العثور على مدينة.</CommandEmpty>
-                            <CommandGroup>
-                                {cities.map((city) => (
-                                <CommandItem
-                                    key={city}
-                                    value={city}
-                                    onSelect={(currentValue) => {
-                                      setSelectedCity(city === selectedCity ? "" : city)
-                                      setCityPopoverOpen(false)
-                                    }}
-                                >
-                                    <Check
-                                    className={cn(
-                                        "mr-2 h-4 w-4",
-                                        selectedCity === city ? "opacity-100" : "opacity-0"
-                                    )}
-                                    />
-                                    {city}
-                                </CommandItem>
-                                ))}
-                            </CommandGroup>
-                            </Command>
-                        </PopoverContent>
-                    </Popover>
+                    <Select name="city" required value={selectedCity} onValueChange={setSelectedCity} disabled={cities.length === 0}>
+                        <SelectTrigger id="city">
+                            <SelectValue placeholder="اختر المدينة" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {cities.map(city => (
+                                <SelectItem key={city} value={city}>{city}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="postal-code">الرمز البريدي (اختياري)</Label>
