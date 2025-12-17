@@ -79,7 +79,7 @@ export default function ContactPage() {
     }
     fullAddress += `, ${values.country}`;
 
-    const message = `طلب جديد:\n\nالاسم: ${values.name}\nرقم الهاتف: ${values.phone}\nالعنوان: ${fullAddress}`;
+    const message = `\u200fطلب جديد:\n\nالاسم: ${values.name}\nرقم الهاتف: ${values.phone}\nالعنوان: ${fullAddress}`;
     const whatsappUrl = `https://wa.me/${siteConfig.contact.phone}?text=${encodeURIComponent(message)}`;
     
     window.open(whatsappUrl, '_blank');
@@ -293,5 +293,3 @@ export default function ContactPage() {
     </div>
   );
 }
-
-    

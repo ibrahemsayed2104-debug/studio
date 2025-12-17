@@ -64,8 +64,8 @@ export default function CheckoutPage() {
 
     const orderId = `order_${Date.now()}`;
 
-    // Construct WhatsApp message
-    let message = `*طلب جديد من ${siteConfig.name}*\n`;
+    // Construct WhatsApp message with RTL mark
+    let message = `\u200f*طلب جديد من ${siteConfig.name}*\n`;
     message += `*رقم الطلب:* ${orderId}\n\n`;
     message += `*معلومات العميل:*\n`;
     message += `الاسم: ${data.name}\n`;
@@ -270,5 +270,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-
-    
