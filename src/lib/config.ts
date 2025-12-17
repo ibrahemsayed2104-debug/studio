@@ -7,7 +7,7 @@ export const siteConfig = {
     email: "contact@fabric.com",
     address: "المقطم - الهضبة الوسطي - امام الجامعه الحديثة",
     whatsappUrl: "https://wa.me/201111148566",
-    googleMapsUrl: "https://maps.app.goo.gl/u5K6g9pCj5d2uT6a9",
+    googleMapsUrl: "https://maps.app.goo.gl/8rbyHzbisS4YrFsv8",
   },
   social: {
     facebook: "#",
