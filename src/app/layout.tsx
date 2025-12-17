@@ -10,6 +10,18 @@ import { siteConfig } from '@/lib/config';
 export const metadata: Metadata = {
   title: siteConfig.name,
   description: siteConfig.description,
+  openGraph: {
+    title: siteConfig.name,
+    description: siteConfig.description,
+    type: 'website',
+    images: [`https://placehold.co/1200x630/EEE/333/png?text=${siteConfig.name}&font=playfair-display`],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteConfig.name,
+    description: siteConfig.description,
+    images: [`https://placehold.co/1200x630/EEE/333/png?text=${siteConfig.name}&font=playfair-display`],
+  },
   icons: {
     icon: '/favicon.ico',
   },
