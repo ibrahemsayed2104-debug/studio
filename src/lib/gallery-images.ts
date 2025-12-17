@@ -1,16 +1,16 @@
 
 export const galleryImages = {
   classic: [
-    { id: 'cl-1', url: 'https://i.ytimg.com/vi/jQtc3637K04/maxresdefault.jpg', hint: 'classic curtain' },
-    { id: 'cl-2', url: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjhL7DBnI6lU7PjpoLNFHYvHjV07YAeNZTtNNiN6QQfi6ZI2_SdRmrFlYVnIqWGCrutGbvGww4zDjlh-39EBun8g_g2Mv0Ig3BJgSN6tA4tuoASKtRGMdl0mvklqbrpQYh4AU5sXgOQbDie1aPLlHmpdJJDsCQ2im0YVpJWV5ObD3lRKzDZeNJH6AzyEA/w640-h480/%D9%83%D8%AA%D8%A7%D9%84%D9%88%D8%AC%D8%A7%D8%AA%20%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1%20(3).jpg', hint: 'elegant drape' },
-    { id: 'cl-3', url: 'https://sadafaldar.com/wp-content/uploads/2022/08/%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-%D8%B4%D8%B1%D9%8A%D8%B7%D9%8A%D8%A9-%D8%B5%D8%AF%D9%81-%D8%A7%D9%84%D8%AF%D8%A7%D8%B1-%D9%84%D9%84%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-2-953x1024.jpeg', hint: 'luxury curtain' },
-    { id: 'cl-4', url: 'https://sadafaldar.com/wp-content/uploads/elementor/thumbs/%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-%D8%B4%D8%B1%D9%8A%D8%B7%D9%8A%D8%A9-%D8%B5%D8%AF%D9%81-%D8%A7%D9%84%D8%AF%D8%A7%D8%B1-%D9%84%D9%84%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-3-pt1wv8wsblvrwcpw28u0s00o8h9ad0olh74gwrq0hs.jpeg', hint: 'vintage curtain' },
+    { id: 'cl-1', url: 'https://i.pinimg.com/564x/5a/3b/0f/5a3b0f622a0a2d52c1d37435e98343f7.jpg', hint: 'classic curtain' },
+    { id: 'cl-2', url: 'https://i.pinimg.com/564x/4b/32/38/4b323864c393551a3a30a842f883b2a2.jpg', hint: 'elegant drape' },
+    { id: 'cl-3', url: 'https://i.pinimg.com/564x/a4/08/94/a408945a9563914a2f8b5f3069151c6b.jpg', hint: 'luxury curtain' },
+    { id: 'cl-4', url: 'https://i.pinimg.com/564x/0f/cf/58/0fcf58631b6b57ded803a60a7479717b.jpg', hint: 'vintage curtain' },
   ],
   roman: [
-    { id: 'ro-1', url: 'https://api.sedarglobal.com/uploads/100001/lifestyle/1682938874_f65bf49e744ce9c2ab05.webp?imwidth=1920', hint: 'roman shade' },
-    { id: 'ro-2', url: 'https://api.mzadqatar.com/uploads/thumbnail/2024/12/15/92562505-a337405d64.jpg', hint: 'window blind' },
-    { id: 'ro-3', url: 'https://i.pinimg.com/736x/74/29/11/742911f091dc86d952f7a9cc2daf5f52.jpg', hint: 'linen blind' },
-    { id: 'ro-4', url: 'https://decor30.com/wp-content/uploads/2024/03/%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-%D9%85%D9%88%D8%AF%D8%B1%D9%86-%D9%84%D9%84%D8%B5%D8%A7%D9%84%D9%88%D9%86-2024-scaled.jpg', hint: 'kitchen window' },
+    { id: 'ro-1', url: 'https://i.pinimg.com/564x/40/e3/86/40e38600d720a2d364860b73c4f74d43.jpg', hint: 'roman shade' },
+    { id: 'ro-2', url: 'https://i.pinimg.com/564x/0b/b7/c1/0bb7c17d7e3a9c7b9499d3633e9b1062.jpg', hint: 'window blind' },
+    { id: 'ro-3', url: 'https://i.pinimg.com/564x/e7/0d/16/e70d164535b376c33c3f3f04499d3758.jpg', hint: 'linen blind' },
+    { id: 'ro-4', url: 'https://i.pinimg.com/564x/f4/f7/a9/f4f7a934335c0293149d5a9d6174a72d.jpg', hint: 'kitchen window' },
   ],
   hotel: [
     { id: 'ho-1', url: 'https://images.unsplash.com/photo-1566642844242-32947135a420?w=800&q=80', hint: 'hotel curtain' },
@@ -24,11 +24,11 @@ export const galleryImages = {
     { id: 'ho-9', url: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800&q=80', hint: 'modern hotel' },
   ],
   modern: [
-    { id: 'mo-1', url: 'https://mannzely.com/wp-content/uploads/2024/09/%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-%D8%B7%D8%A8%D9%82%D8%AA%D9%8A%D9%86.webp', hint: 'modern curtain' },
-    { id: 'mo-3', url: 'https://i.pinimg.com/736x/10/ae/06/10ae0637eafbadfdb2ab86e2528e6523.jpg', hint: 'modern curtain' },
-    { id: 'mo-4', url: 'https://i.pinimg.com/736x/28/c5/82/28c5826a7e70382dc78365e2626aa681.jpg', hint: 'modern curtain' },
-    { id: 'mo-5', url: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj7FB0nKdpRhw2YWzDyo2EcGKn0bBqtqWyZQ4f5BIv81F5bngyBAmx3jd1xxKxYLsLKjfTGXQbE0FAdTnmCc8byTksENxavV6-sF-gTVpTmnh_fLMRBhuUDYiTzQukko8SNTfAv7wWKTVp88-d0Or6_sEy1qIQNDMSJnuVIIL6L0dUP-pRsYQLVDoEOF15r/s692/%D8%B3%D8%AA%D8%A7%D8%B1%D8%A6%D8%B1%20%D9%85%D9%88%D8%AF%D8%B1%D9%86%20%D9%84%D8%B9%D8%A7%D9%85%202024%20(3).jpg', hint: 'modern curtain' },
-    { id: 'mo-6', url: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEieoAfAhjxhxrwdpFYXF4XFCCa0PmNGG9Z9ty06D8QBtL3XEY7w_oj7R18FUjs0y-GsiLbKKwsFTyuMs5EdRQbyDRjDQ9yymlUVUtN8nhWyOdCQaGOy12WxWLI2-HknVQjEfahKvY85XXtmbD0ajeptA-7KKyMEmRI8gI0RkdxClr6RTOkW0imxzhedudR9/s679/%D8%B3%D8%AA%D8%A7%D8%B1%D8%A6%D8%B1%20%D9%85%D9%88%D8%AF%D8%B1%D9%86%20%D9%84%D8%B9%D8%A7%D9%85%202024%20(46).jpg', hint: 'modern curtain' },
-    { id: 'mo-7', url: 'https://upload.3dlat.com/uploads/3dlat.com_09_19_e90c_dbdd3429633c20.jpg', hint: 'modern curtain' },
+    { id: 'mo-1', url: 'https://i.pinimg.com/564x/e7/73/45/e773450954b41b997c550f670a5996f5.jpg', hint: 'modern curtain' },
+    { id: 'mo-3', url: 'https://i.pinimg.com/564x/0f/52/a9/0f52a9a7b972c3d528f8f2b7b5145bae.jpg', hint: 'living room' },
+    { id: 'mo-4', url: 'https://i.pinimg.com/564x/72/7a/a8/727aa887c7a36081e64e1262d0f507b5.jpg', hint: 'minimalist drape' },
+    { id: 'mo-5', url: 'https://i.pinimg.com/564x/3c/55/7c/3c557c5082a6f44e55e2c140f7b03b22.jpg', hint: 'sheer curtain' },
+    { id: 'mo-6', url: 'https://i.pinimg.com/564x/5a/4b/32/5a4b3212624a0d908233d45f49e49a8b.jpg', hint: 'patterned curtain' },
+    { id: 'mo-7', url: 'https://i.pinimg.com/564x/87/42/1d/87421dce3e433436086f4a86f91d2483.jpg', hint: 'contemporary curtain' },
   ],
 };
