@@ -19,6 +19,21 @@ const toBase64 = (file: File): Promise<string> =>
     reader.onerror = reject;
   });
 
+async function imageUrlToBase64(url: string): Promise<string> {
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.statusText}`);
+    }
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
+
+
 export function VirtualMockupTool() {
   const [roomImage, setRoomImage] = useState<string | null>(null);
   const [selectedCurtainId, setSelectedCurtainId] = useState<string>(PRODUCTS[0].id);
@@ -61,12 +76,8 @@ export function VirtualMockupTool() {
         return;
     }
     
-    // This is a workaround to get a base64 string from a URL
-    // In a real app, you'd have base64 or file access directly
     try {
-        const response = await fetch(selectedCurtain.image);
-        const blob = await response.blob();
-        const curtainImageBase64 = await toBase64(new File([blob], "curtain.jpg", {type: blob.type}));
+        const curtainImageBase64 = await imageUrlToBase64(selectedCurtain.image);
 
         const result = await virtualCurtainMockup({
             roomImage: roomImage,

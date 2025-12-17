@@ -10,7 +10,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {MediaPart} from 'genkit/model';
 
 const VirtualCurtainMockupInputSchema = z.object({
   roomImage: z
@@ -39,15 +38,6 @@ export async function virtualCurtainMockup(input: VirtualCurtainMockupInput): Pr
   return virtualCurtainMockupFlow(input);
 }
 
-function dataUriToMediaPart(uri: string): MediaPart {
-  const [header, data] = uri.split(',');
-  const mimeType = header.match(/:(.*?);/)?.[1];
-  if (!mimeType) {
-    throw new Error('Invalid data URI: could not extract MIME type.');
-  }
-  return {media: {url: uri, contentType: mimeType}};
-}
-
 const virtualCurtainMockupFlow = ai.defineFlow(
   {
     name: 'virtualCurtainMockupFlow',
@@ -58,11 +48,11 @@ const virtualCurtainMockupFlow = ai.defineFlow(
     const {media} = await ai.generate({
       model: 'googleai/gemini-2.5-flash-image-preview',
       prompt: [
-        dataUriToMediaPart(input.roomImage),
+        {media: {url: input.roomImage}},
         {
           text: 'Visualize how these curtains would look in the room, and generate an image of the room with the curtains in place. Use the curtain image as reference for the style, color and material of the curtains. Make sure the lighting and shadows match the room.',
         },
-        dataUriToMediaPart(input.curtainImage),
+        {media: {url: input.curtainImage}},
       ],
       config: {
         responseModalities: ['TEXT', 'IMAGE'],
