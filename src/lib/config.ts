@@ -5,7 +5,7 @@ export const siteConfig = {
   contact: {
     phone: "201111148566",
     email: "contact@fabric.com",
-    address: "المقطم - الهضبة الوسطي - امام الجامعه الحديثة",
+    address: "الهضبة الوسطى، قسم المقطم، محافظة القاهرة",
     whatsappUrl: "https://wa.me/201111148566",
     googleMapsUrl: "https://maps.app.goo.gl/8rbyHzbisS4YrFsv8",
   },
