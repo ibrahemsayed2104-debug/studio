@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { GoogleAuthProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
 import { useAuth, useUser, setDocumentNonBlocking, useFirestore } from '@/firebase';
@@ -26,6 +26,9 @@ export default function LoginPage() {
   const [otp, setOtp] = useState('');
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [isOtpSent, setIsOtpSent] = useState(false);
+  
+  // Use a ref to hold the RecaptchaVerifier instance
+  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
   const recaptchaContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,19 +37,19 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router, redirect]);
 
-  const getRecaptchaVerifier = () => {
+  const getRecaptchaVerifier = useCallback(() => {
     if (!auth) return null;
-    if (!window.recaptchaVerifier) {
-      if (!recaptchaContainerRef.current) return null;
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
+    if (!recaptchaVerifierRef.current && recaptchaContainerRef.current) {
+        recaptchaVerifierRef.current = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
         'size': 'invisible',
         'callback': (response: any) => {
-          // reCAPTCHA solved.
+          // reCAPTCHA solved, allow signInWithPhoneNumber.
         }
       });
     }
-    return window.recaptchaVerifier;
-  }
+    return recaptchaVerifierRef.current;
+  }, [auth]);
+
 
   const saveUserToFirestore = (user: any) => {
     if (!firestore) return;
@@ -98,20 +101,8 @@ export default function LoginPage() {
     try {
       let formattedPhoneNumber = phoneNumber;
       if (!phoneNumber.startsWith('+')) {
-        if (phoneNumber.startsWith('0')) {
-          formattedPhoneNumber = '+2' + phoneNumber;
-        } else {
-          formattedPhoneNumber = '+20' + phoneNumber;
-        }
+          formattedPhoneNumber = `+20${phoneNumber.replace(/^0+/, '')}`;
       }
-      
-      // Fix for Egyptian numbers starting with 0 but without country code
-      if (formattedPhoneNumber.startsWith('+20')) {
-        // do nothing
-      } else if (formattedPhoneNumber.startsWith('+2')) {
-         formattedPhoneNumber = `+20${phoneNumber.substring(2)}`;
-      }
-
 
       const result = await signInWithPhoneNumber(auth, formattedPhoneNumber, recaptchaVerifier);
       setConfirmationResult(result);
@@ -124,11 +115,9 @@ export default function LoginPage() {
         title: "حدث خطأ",
         description: "فشل إرسال رمز التحقق. تأكد من صحة الرقم والمحاولة مرة أخرى.",
       });
-      // It's important to reset the verifier on error.
-       if (window.grecaptcha && window.recaptchaVerifier) {
-         window.recaptchaVerifier.render().then((widgetId) => {
-           window.grecaptcha.reset(widgetId);
-         });
+       if (recaptchaVerifierRef.current) {
+         // Reset reCAPTCHA
+         window.grecaptcha?.reset(recaptchaVerifierRef.current.widgetId);
        }
     }
   };
@@ -143,7 +132,7 @@ export default function LoginPage() {
 
       toast({ title: "تم تسجيل الدخول بنجاح", description: `مرحباً بك!` });
       router.replace(redirect);
-    } catch (error: any) => {
+    } catch (error: any) {
       console.error("OTP Error:", error);
       toast({
         variant: "destructive",
