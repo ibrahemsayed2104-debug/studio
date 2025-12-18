@@ -20,8 +20,8 @@
  *     track their order if they have the ID, but prevents anyone from browsing all orders.
  *   - Listing all documents in the `orders` collection is denied (`list: if false`). This
  *     is a crucial privacy and security measure.
- *   - Updates are ONLY allowed to change status from 'تم الشحن' to 'تم التوصيل'.
- *   - Deletes are disabled from the client-side for data integrity.
+ *   - Updates and Deletes are disabled from the client-side for data integrity. All
+ *     status changes should be done by an admin via the Firebase Console.
  * - Deny by Default: Any operation not explicitly granted is denied.
  */
 rules_version = '2';
@@ -49,14 +49,12 @@ service cloud.firestore {
      * @path /orders/{orderId}
      * @allow (create) Anyone can place an order.
      * @allow (get) Anyone can view a specific order if they know the ID.
-     * @allow (update) An update is only allowed to change the status from 'Shipped' to 'Delivered'.
      * @deny (list) Listing all orders is denied for privacy.
-     * @deny (delete) Client-side deletes are denied.
+     * @deny (update, delete) Client-side updates and deletes are denied.
      */
     match /orders/{orderId} {
       allow create, get: if true;
-      allow update: if request.resource.data.status == 'تم التوصيل' && resource.data.status == 'تم الشحن';
-      allow list, delete: if false;
+      allow list, update, delete: if false;
     }
   }
 }

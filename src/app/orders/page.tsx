@@ -1,21 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { doc, getDoc, updateDoc, DocumentData } from 'firebase/firestore';
+import { doc, getDoc, DocumentData } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, PackageSearch, AlertCircle, ShoppingBag, CheckCircle, PackageCheck } from 'lucide-react';
+import { Loader2, PackageSearch, AlertCircle, ShoppingBag, CheckCircle2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { PRODUCTS } from '@/lib/data';
-import { useToast } from '@/hooks/use-toast';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
-
 
 interface OrderData extends DocumentData {
   id: string;
@@ -46,11 +42,9 @@ interface OrderData extends DocumentData {
 export default function OrdersPage() {
   const [orderId, setOrderId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [order, setOrder] = useState<OrderData | null>(null);
   const firestore = useFirestore();
-  const { toast } = useToast();
 
   const handleTrackOrder = async () => {
     if (!orderId.trim()) {
@@ -81,51 +75,6 @@ export default function OrdersPage() {
     }
   };
 
-  const handleConfirmReception = async () => {
-    if (!order) return;
-
-    setIsUpdating(true);
-    const orderRef = doc(firestore, 'orders', order.id);
-    const updatedData = { status: 'تم التوصيل' };
-
-    try {
-      // Non-blocking update
-      updateDoc(orderRef, updatedData)
-        .catch(async (serverError) => {
-          const permissionError = new FirestorePermissionError({
-            path: orderRef.path,
-            operation: 'update',
-            requestResourceData: updatedData,
-          });
-          errorEmitter.emit('permission-error', permissionError);
-          // We don't re-throw, just show a toast
-           toast({
-            variant: "destructive",
-            title: "خطأ في التحديث",
-            description: "ليس لديك الصلاحية لتغيير حالة الطلب.",
-          });
-        });
-        
-      // Optimistic UI update
-      setOrder(prevOrder => prevOrder ? { ...prevOrder, status: 'تم التوصيل' } : null);
-      
-      toast({
-        title: "تم تأكيد الاستلام!",
-        description: "شكرًا لك! سعداء بخدمتك.",
-      });
-
-    } catch (err) {
-      console.error("Error updating order status:", err);
-       toast({
-        variant: "destructive",
-        title: "حدث خطأ",
-        description: "لم نتمكن من تحديث حالة الطلب. الرجاء المحاولة مرة أخرى.",
-      });
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-  
   const getProductImage = (productId: string) => {
     return PRODUCTS.find(p => p.id === productId)?.image || '';
   };
@@ -234,21 +183,6 @@ export default function OrdersPage() {
                     </div>
                 </div>
             </CardContent>
-            {order.status === 'تم الشحن' && (
-              <CardFooter className="flex-col items-stretch gap-4 border-t pt-6">
-                <Alert>
-                  <PackageCheck className="h-4 w-4" />
-                  <AlertTitle>هل استلمت طلبك؟</AlertTitle>
-                  <AlertDescription>
-                    بالضغط على الزر أدناه، أنت تؤكد استلامك للطلب.
-                  </AlertDescription>
-                </Alert>
-                <Button onClick={handleConfirmReception} disabled={isUpdating} className="w-full font-bold">
-                  {isUpdating ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : <CheckCircle className="ms-2 h-4 w-4" />}
-                  تأكيد الاستلام
-                </Button>
-              </CardFooter>
-            )}
             {order.status === 'تم التوصيل' && (
                 <CardFooter className="border-t pt-6">
                     <div className="text-center w-full text-green-600 flex items-center justify-center gap-2">
