@@ -35,7 +35,7 @@ service cloud.firestore {
     }
 
     /**
-     * @description Stores submissions from the public contact form.
+_     * @description Stores submissions from the public contact form.
      */
     match /contact_form_entries/{contactFormEntryId} {
       allow create: if true;
@@ -51,9 +51,7 @@ service cloud.firestore {
      */
     match /orders/{orderId} {
       allow create, get: if true;
-      allow update: if request.resource.data.status != resource.data.status &&
-                       request.resource.data.status in ['قيد المعالجة', 'تم الشحن', 'تم التوصيل', 'تم استلام الطلب', 'ملغي'] &&
-                       request.resource.data.keys().diff(resource.data.keys()).hasOnly(['status', 'createdAt']);
+      allow update: if request.resource.data.status in ['قيد المعالجة', 'تم الشحن', 'تم التوصيل', 'تم استلام الطلب', 'ملغي'];
       allow list, delete: if false;
     }
   }
