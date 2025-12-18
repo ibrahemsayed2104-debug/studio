@@ -59,14 +59,15 @@ export default function ContactPage() {
       newCities = SAUDI_CITIES;
     }
     setCities(newCities);
-    form.resetField('city');
+    if(form.getValues('city')) {
+      form.setValue('city', '');
+    }
   }, [selectedCountry, selectedGovernorate, form]);
   
   useEffect(() => {
     if (selectedCountry !== 'مصر') {
-      form.unregister('governorate');
+      form.setValue('governorate', undefined);
     } else {
-        form.register('governorate');
         if (!form.getValues('governorate')) {
              form.setValue('governorate', EGYPT_GOVERNORATES[0].governorate);
         }
@@ -76,7 +77,7 @@ export default function ContactPage() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     let fullAddress = `${values.address}, عمارة ${values.buildingNumber}, الدور ${values.floorNumber}, شقة ${values.apartmentNumber}\n`;
-    fullAddress += `${values.city}`;
+    if(values.city) fullAddress += `${values.city}`;
     if (values.country === 'مصر' && values.governorate) {
         fullAddress += `, ${values.governorate}`;
     }
@@ -167,7 +168,7 @@ export default function ContactPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>المحافظة</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || ''}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="اختر محافظتك" />
@@ -296,5 +297,3 @@ export default function ContactPage() {
     </div>
   );
 }
-
-    

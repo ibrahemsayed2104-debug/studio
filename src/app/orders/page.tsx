@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { doc, getDoc, DocumentData } from 'firebase/firestore';
-import { useFirestore, useMemoFirebase } from '@/firebase';
+import { doc, getDoc, DocumentData, updateDoc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -10,6 +10,10 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, PackageSearch, AlertCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const ORDER_STATUSES = ['قيد المعالجة', 'تم الشحن', 'تم التوصيل', 'تم استلام الطلب', 'ملغي'];
 
 interface OrderData extends DocumentData {
   id: string;
@@ -40,9 +44,12 @@ interface OrderData extends DocumentData {
 export default function TrackOrderPage() {
   const [orderId, setOrderId] = useState('');
   const [searchedOrder, setSearchedOrder] = useState<OrderData | null>(null);
+  const [newStatus, setNewStatus] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const firestore = useFirestore();
+  const { toast } = useToast();
 
   const handleSearch = async () => {
     if (!orderId.trim() || !firestore) {
@@ -52,13 +59,16 @@ export default function TrackOrderPage() {
     setIsLoading(true);
     setError(null);
     setSearchedOrder(null);
+    setNewStatus('');
 
     try {
       const orderRef = doc(firestore, 'orders', orderId.trim());
       const docSnap = await getDoc(orderRef);
 
       if (docSnap.exists()) {
-        setSearchedOrder({ id: docSnap.id, ...docSnap.data() } as OrderData);
+        const orderData = { id: docSnap.id, ...docSnap.data() } as OrderData;
+        setSearchedOrder(orderData);
+        setNewStatus(orderData.status);
       } else {
         setError('لم يتم العثور على طلب بهذا الرقم. يرجى التحقق من الرقم والمحاولة مرة أخرى.');
       }
@@ -69,8 +79,35 @@ export default function TrackOrderPage() {
       setIsLoading(false);
     }
   };
-  
-  const getStatusVariant = (status: string) => {
+
+  const handleUpdateStatus = async () => {
+    if (!searchedOrder || !newStatus || !firestore) return;
+
+    setIsUpdating(true);
+    try {
+      const orderRef = doc(firestore, 'orders', searchedOrder.id);
+      await updateDoc(orderRef, { status: newStatus });
+      
+      setSearchedOrder(prev => prev ? { ...prev, status: newStatus } : null);
+      
+      toast({
+        title: 'تم تحديث الحالة',
+        description: `تم تحديث حالة الطلب إلى "${newStatus}".`,
+      });
+
+    } catch (error) {
+       console.error("Error updating status: ", error);
+       toast({
+        variant: 'destructive',
+        title: 'فشل التحديث',
+        description: 'حدث خطأ أثناء تحديث حالة الطلب. قد يكون السبب قيود الأمان.',
+      });
+    } finally {
+        setIsUpdating(false);
+    }
+  };
+
+  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
       case 'تم التوصيل':
       case 'تم استلام الطلب':
@@ -86,7 +123,6 @@ export default function TrackOrderPage() {
     }
   };
 
-
   return (
     <div className="container mx-auto max-w-2xl px-4 py-8 md:py-12">
       <div className="text-center mb-12">
@@ -97,26 +133,26 @@ export default function TrackOrderPage() {
           أدخل رقم الطلب الخاص بك أدناه لعرض حالته وتفاصيله.
         </p>
       </div>
-      
+
       <Card className="mb-8">
         <CardHeader>
-            <CardTitle>البحث عن الطلب</CardTitle>
+          <CardTitle>البحث عن الطلب</CardTitle>
         </CardHeader>
         <CardContent>
-            <div className="flex flex-col sm:flex-row gap-2">
-                <Input
-                type="text"
-                value={orderId}
-                onChange={(e) => setOrderId(e.target.value)}
-                placeholder="أدخل رقم طلبك هنا..."
-                className="flex-grow text-lg"
-                onKeyUp={(e) => e.key === 'Enter' && handleSearch()}
-                />
-                <Button onClick={handleSearch} disabled={isLoading} size="lg" className="font-bold">
-                {isLoading ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : <PackageSearch className="ms-2 h-4 w-4" />}
-                تتبع
-                </Button>
-            </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Input
+              type="text"
+              value={orderId}
+              onChange={(e) => setOrderId(e.target.value)}
+              placeholder="أدخل رقم طلبك هنا..."
+              className="flex-grow text-lg"
+              onKeyUp={(e) => e.key === 'Enter' && handleSearch()}
+            />
+            <Button onClick={handleSearch} disabled={isLoading} size="lg" className="font-bold">
+              {isLoading ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : <PackageSearch className="ms-2 h-4 w-4" />}
+              تتبع
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -128,51 +164,75 @@ export default function TrackOrderPage() {
       )}
 
       {error && !isLoading && (
-         <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>خطأ</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>خطأ</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {!isLoading && !error && searchedOrder && (
-        <Card>
+        <>
+          <Card>
             <CardHeader>
-                <CardTitle>تفاصيل الطلب #{searchedOrder.id.slice(-6)}</CardTitle>
-                <div className="flex justify-between items-center pt-2">
-                    <CardDescription>
-                        تاريخ الطلب: {new Date(searchedOrder.createdAt.seconds * 1000).toLocaleDateString('ar-EG')}
-                    </CardDescription>
-                    <Badge variant={getStatusVariant(searchedOrder.status)} className="text-sm">{searchedOrder.status}</Badge>
-                </div>
+              <CardTitle>تفاصيل الطلب #{searchedOrder.id.slice(-6)}</CardTitle>
+              <div className="flex justify-between items-center pt-2">
+                <CardDescription>
+                  تاريخ الطلب: {new Date(searchedOrder.createdAt.seconds * 1000).toLocaleDateString('ar-EG')}
+                </CardDescription>
+                <Badge variant={getStatusVariant(searchedOrder.status)} className="text-sm">{searchedOrder.status}</Badge>
+              </div>
             </CardHeader>
             <CardContent>
-                <div className="space-y-6">
-                    <div className="space-y-4">
-                        <h4 className="font-semibold">ملخص الطلب ({searchedOrder.itemCount})</h4>
-                        {searchedOrder.items.map((item, index) => (
-                            <div key={index} className="flex items-center gap-4">
-                                <div className="flex-1">
-                                    <p className="font-medium">{item.productName} (x{item.quantity})</p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {item.customization.fabric}, {item.customization.size}, {item.customization.color}, {item.customization.style}
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <h4 className="font-semibold">ملخص الطلب ({searchedOrder.itemCount})</h4>
+                  {searchedOrder.items.map((item, index) => (
+                    <div key={index} className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <p className="font-medium">{item.productName} (x{item.quantity})</p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.customization.fabric}, {item.customization.size}, {item.customization.color}, {item.customization.style}
+                        </p>
+                      </div>
                     </div>
-                    <Separator />
-                    <div className="space-y-4">
-                        <h4 className="font-semibold">معلومات الشحن</h4>
-                        <div className="text-sm text-muted-foreground space-y-1">
-                            <p><span className="font-medium text-foreground">الاسم:</span> {searchedOrder.customer.name}</p>
-                            <p><span className="font-medium text-foreground">العنوان:</span> {searchedOrder.customer.address}</p>
-                            <p><span className="font-medium text-foreground">رقم الهاتف:</span> {searchedOrder.customer.phone}</p>
-                        </div>
-                    </div>
+                  ))}
                 </div>
+                <Separator />
+                <div className="space-y-4">
+                  <h4 className="font-semibold">معلومات الشحن</h4>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p><span className="font-medium text-foreground">الاسم:</span> {searchedOrder.customer.name}</p>
+                    <p><span className="font-medium text-foreground">العنوان:</span> {searchedOrder.customer.address}</p>
+                    <p><span className="font-medium text-foreground">رقم الهاتف:</span> {searchedOrder.customer.phone}</p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
-        </Card>
+          </Card>
+          
+          <Card className="mt-8">
+            <CardHeader>
+              <CardTitle>إدارة الطلب (خاص بالمسؤول)</CardTitle>
+              <CardDescription>يمكنك تحديث حالة الطلب من هنا.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col sm:flex-row gap-2">
+              <Select value={newStatus} onValueChange={setNewStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر حالة جديدة" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ORDER_STATUSES.map(status => (
+                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button onClick={handleUpdateStatus} disabled={isUpdating || newStatus === searchedOrder.status}>
+                {isUpdating ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : 'تحديث الحالة'}
+              </Button>
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );

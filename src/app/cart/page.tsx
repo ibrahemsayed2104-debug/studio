@@ -38,32 +38,27 @@ export default function CheckoutPage() {
   }, []);
 
   useEffect(() => {
-    let newCities: string[] = [];
     if (selectedCountry === 'مصر') {
         const governorateData = EGYPT_GOVERNORATES.find(g => g.governorate === selectedGovernorate);
-        newCities = governorateData ? governorateData.cities : [];
+        setCities(governorateData ? governorateData.cities : []);
+        setSelectedCity('');
     } else if (selectedCountry === 'المملكة العربية السعودية') {
-        newCities = SAUDI_CITIES;
+        setCities(SAUDI_CITIES);
+        setSelectedCity('');
     }
-    setCities(newCities);
-    setSelectedCity('');
   }, [selectedCountry, selectedGovernorate]);
   
   useEffect(() => {
-    if (selectedCountry === 'مصر') {
-        if (!EGYPT_GOVERNORATES.some(g => g.governorate === selectedGovernorate)) {
-            setSelectedGovernorate(EGYPT_GOVERNORATES[0].governorate);
-        }
-    } else {
+    if (selectedCountry !== 'مصر') {
         setSelectedGovernorate('');
     }
-  }, [selectedCountry, selectedGovernorate]);
+  }, [selectedCountry]);
 
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    if (!selectedCity) {
+    if (selectedCountry && cities.length > 0 && !selectedCity) {
         toast({
             variant: "destructive",
             title: "خطأ في الإدخال",
@@ -83,8 +78,8 @@ export default function CheckoutPage() {
     message += `رقم الهاتف: ${customerData.phone}\n`;
     
     let fullAddress = `${customerData.address}, عمارة ${customerData['building-number']}, الدور ${customerData['floor-number']}, شقة ${customerData['apartment-number']}\n`;
-    fullAddress += `${selectedCity}`;
-    if (selectedCountry === 'مصر' && customerData.governorate) {
+    if(customerData.city) fullAddress += `${customerData.city}`;
+    if (customerData.governorate) {
         fullAddress += `, ${customerData.governorate}`;
     }
     fullAddress += `, ${customerData.country}`;
@@ -324,5 +319,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-
-    

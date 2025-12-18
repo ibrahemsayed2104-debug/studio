@@ -46,7 +46,7 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [updatingStatus, setUpdatingStatus] = useState<Record<string, string>>({});
+  const [statusMap, setStatusMap] = useState<Record<string, string>>({});
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
 
@@ -68,7 +68,7 @@ export default function DashboardPage() {
         fetchedOrders.forEach(order => {
           initialStatus[order.id] = order.status;
         });
-        setUpdatingStatus(initialStatus);
+        setStatusMap(initialStatus);
         setIsLoading(false);
       },
       (err) => {
@@ -83,7 +83,7 @@ export default function DashboardPage() {
 
   const handleUpdateStatus = async (orderId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent dialog from opening when clicking the button
-    const newStatus = updatingStatus[orderId];
+    const newStatus = statusMap[orderId];
     if (!newStatus || !firestore) return;
 
     setUpdatingId(orderId);
@@ -92,7 +92,7 @@ export default function DashboardPage() {
       await updateDoc(orderRef, { status: newStatus });
       toast({
         title: 'تم تحديث الحالة',
-        description: `تم تحديث حالة الطلب #${orderId.slice(-4)} إلى "${newStatus}".`,
+        description: `تم تحديث حالة الطلب #${orderId.slice(-6)} إلى "${newStatus}".`,
       });
     } catch (err) {
       console.error(err);
@@ -139,7 +139,7 @@ export default function DashboardPage() {
   };
 
   const handleStatusChange = (orderId: string, newStatus: string) => {
-    setUpdatingStatus(prev => ({ ...prev, [orderId]: newStatus }));
+    setStatusMap(prev => ({ ...prev, [orderId]: newStatus }));
   };
 
   return (
@@ -160,7 +160,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {error && (
+      {error && !isLoading && (
          <Alert variant="destructive" className="max-w-lg mx-auto">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>خطأ</AlertTitle>
@@ -207,7 +207,7 @@ export default function DashboardPage() {
                                             </TableCell>
                                             <TableCell onClick={(e) => e.stopPropagation()}>
                                                 <div className="flex items-center gap-2">
-                                                    <Select value={updatingStatus[order.id]} onValueChange={(newStatus) => handleStatusChange(order.id, newStatus)}>
+                                                    <Select value={statusMap[order.id]} onValueChange={(newStatus) => handleStatusChange(order.id, newStatus)}>
                                                         <SelectTrigger className="w-[180px]">
                                                             <SelectValue placeholder="اختر حالة" />
                                                         </SelectTrigger>
@@ -219,7 +219,7 @@ export default function DashboardPage() {
                                                     </Select>
                                                     <Button
                                                         onClick={(e) => handleUpdateStatus(order.id, e)}
-                                                        disabled={updatingId === order.id || order.status === updatingStatus[order.id]}
+                                                        disabled={updatingId === order.id || order.status === statusMap[order.id]}
                                                         size="sm"
                                                     >
                                                         {updatingId === order.id ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : 'تحديث'}
@@ -287,5 +287,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    

@@ -9,7 +9,7 @@
  * Data Structure:
  * - /curtains: Public catalog, read-only for clients.
  * - /contact_form_entries: Write-only for public contact form.
- * - /orders: Allows creation by anyone, read and list access by anyone for admin purposes. Status can be updated.
+ * - /orders: Allows creation by anyone, read and list access by anyone for admin UI. Status can be updated.
  *
  * Key Security Decisions:
  * - Public Catalog: `/curtains` is publicly readable. Writes are disabled.
