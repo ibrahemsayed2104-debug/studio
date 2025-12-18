@@ -2,20 +2,25 @@
  * This ruleset is for the 'Fabrics' curtain store application.
  *
  * Core Philosophy:
- * With the removal of user authentication, the security model is simplified. All data
- * is either public or write-only. There is no concept of user ownership.
+ * With user authentication disabled, the security model is simplified. Data is either public,
+ * write-only, or accessible via a known identifier (like an order ID).
  *
  * Data Structure:
- * - /curtains: A public collection for the product catalog.
- * - /contact_form_entries: A write-only collection for public contact form submissions.
+ * - /curtains: Public catalog, read-only for clients.
+ * - /contact_form_entries: Write-only for public contact form.
+ * - /orders: Allows creation by anyone, but individual orders are only readable
+ *   if you know the specific `orderId`. Listing all orders is denied.
  *
  * Key Security Decisions:
- * - Public Catalog: The `/curtains` collection is publicly readable by anyone. Writes are
- *   disabled, assuming they will be managed by an admin process outside of direct
- *   client access.
- * - Write-Only Contact Form: The `/contact_form_entries` collection allows anyone to submit
- *   an entry but denies all read, update, and delete operations. This protects the privacy
- *   of submitters while allowing the form to function publicly.
+ * - Public Catalog: `/curtains` is publicly readable. Writes are disabled.
+ * - Write-Only Contact Form: `/contact_form_entries` allows creation, denies all reads.
+ * - Order Security:
+ *   - Anyone can create an order (`create: if true`).
+ *   - A specific order can only be read (`get: if true`). This allows a customer to
+ *     track their order if they have the ID, but prevents anyone from browsing all orders.
+ *   - Listing all documents in the `orders` collection is denied (`list: if false`). This
+ *     is a crucial privacy and security measure.
+ *   - Updates and deletes are disabled from the client-side for data integrity.
  * - Deny by Default: Any operation not explicitly granted is denied.
  */
 rules_version = '2';
@@ -24,24 +29,31 @@ service cloud.firestore {
 
     /**
      * @description Publicly readable catalog of curtain products. Writes are disabled.
-     * @path /curtains/{curtainId}
-     * @allow (get) Any user, signed in or not, can view a specific curtain.
-     * @deny (create) All client-side writes are denied.
      */
     match /curtains/{curtainId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // All client writes are disabled.
+      allow create, update, delete: if false;
     }
 
     /**
      * @description Stores submissions from the public contact form.
-     * @path /contact_form_entries/{contactFormEntryId}
-     * @allow (create) Any user (anonymous or otherwise) can submit the contact form.
-     * @deny (get) Reading submissions is denied to protect privacy.
      */
     match /contact_form_entries/{contactFormEntryId} {
       allow create: if true;
       allow get, list, update, delete: if false;
+    }
+    
+    /**
+     * @description Stores customer orders.
+     * @path /orders/{orderId}
+     * @allow (create) Anyone can place an order.
+     * @allow (get) Anyone can view a specific order if they know the ID.
+     * @deny (list) Listing all orders is denied for privacy.
+     * @deny (update, delete) Client-side updates/deletes are denied.
+     */
+    match /orders/{orderId} {
+      allow create, get: if true;
+      allow list, update, delete: if false;
     }
   }
 }

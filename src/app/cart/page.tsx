@@ -15,11 +15,16 @@ import { useToast } from '@/hooks/use-toast';
 import { siteConfig } from '@/lib/config';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SAUDI_CITIES, EGYPT_GOVERNORATES, COUNTRIES } from '@/lib/data';
+import { useFirestore } from '@/firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function CheckoutPage() {
   const { cartItems, itemCount, clearCart } = useCart();
   const router = useRouter();
   const { toast } = useToast();
+  const firestore = useFirestore();
 
   const [orderId, setOrderId] = useState('');
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
@@ -33,24 +38,26 @@ export default function CheckoutPage() {
   }, []);
 
   useEffect(() => {
+    let newCities: string[] = [];
     if (selectedCountry === 'مصر') {
         const governorateData = EGYPT_GOVERNORATES.find(g => g.governorate === selectedGovernorate);
-        setCities(governorateData ? governorateData.cities : []);
+        newCities = governorateData ? governorateData.cities : [];
     } else if (selectedCountry === 'المملكة العربية السعودية') {
-        setCities(SAUDI_CITIES);
-    } else {
-        setCities([]);
+        newCities = SAUDI_CITIES;
     }
+    setCities(newCities);
     setSelectedCity('');
   }, [selectedCountry, selectedGovernorate]);
   
   useEffect(() => {
     if (selectedCountry === 'مصر') {
-        setSelectedGovernorate(EGYPT_GOVERNORATES[0].governorate);
+        if (!EGYPT_GOVERNORATES.some(g => g.governorate === selectedGovernorate)) {
+            setSelectedGovernorate(EGYPT_GOVERNORATES[0].governorate);
+        }
     } else {
         setSelectedGovernorate('');
     }
-  }, [selectedCountry]);
+  }, [selectedCountry, selectedGovernorate]);
 
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -66,24 +73,24 @@ export default function CheckoutPage() {
     }
 
     const formData = new FormData(e.currentTarget);
-    const data = Object.fromEntries(formData.entries());
+    const customerData = Object.fromEntries(formData.entries());
 
     // Construct WhatsApp message with RTL mark
     let message = `\u200f*طلب جديد من ${siteConfig.name}*\n`;
     message += `*رقم الطلب:* ${orderId}\n\n`;
     message += `*معلومات العميل:*\n`;
-    message += `الاسم: ${data.name}\n`;
-    message += `رقم الهاتف: ${data.phone}\n`;
+    message += `الاسم: ${customerData.name}\n`;
+    message += `رقم الهاتف: ${customerData.phone}\n`;
     
-    let fullAddress = `${data.address}, عمارة ${data['building-number']}, الدور ${data['floor-number']}, شقة ${data['apartment-number']}\n`;
+    let fullAddress = `${customerData.address}, عمارة ${customerData['building-number']}, الدور ${customerData['floor-number']}, شقة ${customerData['apartment-number']}\n`;
     fullAddress += `${selectedCity}`;
-    if (selectedCountry === 'مصر' && data.governorate) {
-        fullAddress += `, ${data.governorate}`;
+    if (selectedCountry === 'مصر' && customerData.governorate) {
+        fullAddress += `, ${customerData.governorate}`;
     }
-    fullAddress += `, ${data.country}`;
+    fullAddress += `, ${customerData.country}`;
 
-    if (data['postal-code']) {
-      fullAddress += `, الرمز البريدي: ${data['postal-code']}`;
+    if (customerData['postal-code']) {
+      fullAddress += `, الرمز البريدي: ${customerData['postal-code']}`;
     }
 
     message += `العنوان: ${fullAddress}\n\n`;
@@ -99,17 +106,57 @@ export default function CheckoutPage() {
     message += `*إجمالي عدد المنتجات:* ${itemCount}\n\n`;
     message += `*طريقة الدفع:* الدفع عند الاستلام (كاش)`;
 
-    const whatsappUrl = `https://wa.me/${siteConfig.contact.phone}?text=${encodeURIComponent(message)}`;
-    
-    window.open(whatsappUrl, '_blank');
+    const orderData = {
+      customer: {
+        name: customerData.name,
+        phone: customerData.phone,
+        address: fullAddress,
+      },
+      items: cartItems.map(item => ({
+        productId: item.product.id,
+        productName: item.product.name,
+        quantity: item.quantity,
+        customization: item.customization,
+      })),
+      itemCount: itemCount,
+      status: 'قيد المعالجة',
+      createdAt: serverTimestamp(),
+    };
 
-    toast({
-      title: "تم توجيهك إلى واتساب!",
-      description: "أرسل الرسالة لتأكيد طلبك.",
-    });
+    try {
+      const orderRef = doc(firestore, 'orders', orderId);
+      setDoc(orderRef, orderData)
+        .catch(async (serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: orderRef.path,
+            operation: 'create',
+            requestResourceData: orderData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+          // We don't re-throw here, allow the UI to proceed
+          console.error("Firestore permission error ignored for UI purposes, but logged.", permissionError);
+        });
 
-    clearCart();
-    router.push('/order-success');
+      const whatsappUrl = `https://wa.me/${siteConfig.contact.phone}?text=${encodeURIComponent(message)}`;
+      
+      window.open(whatsappUrl, '_blank');
+
+      toast({
+        title: "تم توجيهك إلى واتساب!",
+        description: "أرسل الرسالة لتأكيد طلبك.",
+      });
+
+      clearCart();
+      router.push(`/order-success?orderId=${orderId}`);
+
+    } catch (error) {
+      console.error("Error processing order: ", error);
+      toast({
+        variant: "destructive",
+        title: "حدث خطأ",
+        description: "لم نتمكن من حفظ طلبك. الرجاء المحاولة مرة أخرى.",
+      });
+    }
   };
 
   if (itemCount === 0) {

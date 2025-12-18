@@ -6,55 +6,17 @@
       "type": "object",
       "description": "Represents a curtain product with its details.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the curtain product."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the curtain."
-        },
-        "description": {
-          "type": "string",
-          "description": "Detailed description of the curtain."
-        },
-        "imageUrl": {
-          "type": "string",
-          "description": "URL of the image of the curtain.",
-          "format": "uri"
-        },
-        "price": {
-          "type": "number",
-          "description": "Price of the curtain."
-        },
-        "fabric": {
-          "type": "string",
-          "description": "Fabric of the curtain."
-        },
-        "size": {
-          "type": "string",
-          "description": "Size of the curtain."
-        },
-        "color": {
-          "type": "string",
-          "description": "Color of the curtain."
-        },
-        "style": {
-          "type": "string",
-          "description": "Style of the curtain."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the curtain product." },
+        "name": { "type": "string", "description": "Name of the curtain." },
+        "description": { "type": "string", "description": "Detailed description of the curtain." },
+        "imageUrl": { "type": "string", "description": "URL of the image of the curtain.", "format": "uri" },
+        "price": { "type": "number", "description": "Price of the curtain." },
+        "fabric": { "type": "string", "description": "Fabric of the curtain." },
+        "size": { "type": "string", "description": "Size of the curtain." },
+        "color": { "type": "string", "description": "Color of the curtain." },
+        "style": { "type": "string", "description": "Style of the curtain." }
       },
-      "required": [
-        "id",
-        "name",
-        "description",
-        "imageUrl",
-        "price",
-        "fabric",
-        "size",
-        "color",
-        "style"
-      ]
+      "required": ["id", "name", "description", "imageUrl", "price", "fabric", "size", "color", "style"]
     },
     "ContactFormEntry": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -62,36 +24,59 @@
       "type": "object",
       "description": "Represents an entry from the contact form.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the contact form entry."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the person submitting the form."
-        },
-        "email": {
-          "type": "string",
-          "description": "Email of the person submitting the form.",
-          "format": "email"
-        },
-        "message": {
-          "type": "string",
-          "description": "Message content from the contact form."
-        },
-        "submissionDate": {
-          "type": "string",
-          "description": "Date and time when the form was submitted.",
-          "format": "date-time"
-        }
+        "id": { "type": "string", "description": "Unique identifier for the contact form entry." },
+        "name": { "type": "string", "description": "Name of the person submitting the form." },
+        "email": { "type": "string", "description": "Email of the person submitting the form.", "format": "email" },
+        "message": { "type": "string", "description": "Message content from the contact form." },
+        "submissionDate": { "type": "string", "description": "Date and time when the form was submitted.", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "name",
-        "email",
-        "message",
-        "submissionDate"
-      ]
+      "required": ["id", "name", "email", "message", "submissionDate"]
+    },
+    "Order": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Order",
+      "type": "object",
+      "description": "Represents a customer order.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the order (e.g., order_1699982042468)." },
+        "customer": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "phone": { "type": "string" },
+            "address": { "type": "string" }
+          },
+          "required": ["name", "phone", "address"]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "productId": { "type": "string" },
+              "productName": { "type": "string" },
+              "quantity": { "type": "number" },
+              "customization": {
+                "type": "object",
+                "properties": {
+                  "fabric": { "type": "string" },
+                  "size": { "type": "string" },
+                  "color": { "type": "string" },
+                  "style": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "itemCount": { "type": "number" },
+        "status": {
+          "type": "string",
+          "enum": ["قيد المعالجة", "تم الشحن", "تم التوصيل", "ملغي"],
+          "description": "The current status of the order."
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "customer", "items", "status", "createdAt"]
     }
   },
   "auth": {
@@ -103,35 +88,30 @@
         "path": "/curtains/{curtainId}",
         "definition": {
           "entityName": "Curtain",
-          "schema": {
-            "$ref": "#/backend/entities/Curtain"
-          },
-          "description": "Stores curtain product information. Allows public read access for catalog display. The ID of the document serves as the curtainId.",
-          "params": [
-            {
-              "name": "curtainId",
-              "description": "The unique identifier for a curtain."
-            }
-          ]
+          "schema": { "$ref": "#/backend/entities/Curtain" },
+          "description": "Stores curtain product information.",
+          "params": [{ "name": "curtainId", "description": "The unique identifier for a curtain." }]
         }
       },
       {
         "path": "/contact_form_entries/{contactFormEntryId}",
         "definition": {
           "entityName": "ContactFormEntry",
-          "schema": {
-            "$ref": "#/backend/entities/ContactFormEntry"
-          },
-          "description": "Stores contact form submissions. Access control will depend on the applications requirements.",
-          "params": [
-            {
-              "name": "contactFormEntryId",
-              "description": "The unique identifier for a contact form entry."
-            }
-          ]
+          "schema": { "$ref": "#/backend/entities/ContactFormEntry" },
+          "description": "Stores contact form submissions.",
+          "params": [{ "name": "contactFormEntryId", "description": "The unique identifier for a contact form entry." }]
+        }
+      },
+      {
+        "path": "/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": { "$ref": "#/backend/entities/Order" },
+          "description": "Stores customer orders. The document ID is the human-readable order number.",
+          "params": [{ "name": "orderId", "description": "The unique identifier for an order." }]
         }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support the 'StarTak' curtain store application, focusing on product catalog and contact form submissions. Authentication has been removed, so user-specific collections like profiles and orders are no longer needed. The structure is simplified to public and write-only collections."
+    "reasoning": "The Firestore data structure is designed to support the 'Fabrics' curtain store application. It includes collections for the product catalog (`curtains`), contact form submissions (`contact_form_entries`), and now customer orders (`orders`). Authentication is disabled, so security rules are based on public read/write access patterns. The `orders` collection allows public creation and read access for the specific user who knows their order ID, but denies listing all orders."
   }
 }
