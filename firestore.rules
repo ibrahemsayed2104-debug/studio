@@ -8,20 +8,19 @@
  * Data Structure:
  * - /curtains: Public catalog, read-only for clients.
  * - /contact_form_entries: Write-only for public contact form.
- * - /orders: Allows creation by anyone, but individual orders are only readable
- *   if you know the specific `orderId`. Listing all orders is denied.
+ * - /orders: Allows creation by anyone, read access by anyone, and status updates by the admin (from the app).
  *
  * Key Security Decisions:
  * - Public Catalog: `/curtains` is publicly readable. Writes are disabled.
  * - Write-Only Contact Form: `/contact_form_entries` allows creation, denies all reads.
  * - Order Security:
  *   - Anyone can create an order (`create: if true`).
- *   - A specific order can only be read (`get: if true`). This allows a customer to
- *     track their order if they have the ID, but prevents anyone from browsing all orders.
- *   - Listing all documents in the `orders` collection is denied (`list: if false`). This
- *     is a crucial privacy and security measure.
- *   - Updates and Deletes are disabled from the client-side for data integrity. All
- *     status changes should be done by an admin via the Firebase Console.
+ *   - A specific order can be read by anyone (`get: if true`).
+ *   - Listing all documents in the `orders` collection is denied for privacy (`list: if false`).
+ *   - Updates are allowed ONLY for the 'status' field. This allows the store owner to update
+ *     the order status from the app without exposing other order data to modification.
+ *     All other fields are immutable.
+ *   - Deletes are disabled from the client-side for data integrity.
  * - Deny by Default: Any operation not explicitly granted is denied.
  */
 rules_version = '2';
@@ -47,14 +46,15 @@ service cloud.firestore {
     /**
      * @description Stores customer orders.
      * @path /orders/{orderId}
-     * @allow (create) Anyone can place an order.
-     * @allow (get) Anyone can view a specific order if they know the ID.
-     * @deny (list) Listing all orders is denied for privacy.
-     * @deny (update, delete) Client-side updates and deletes are denied.
+     * @allow (create, get) Anyone can place and view a specific order.
+     * @allow (update) Only the 'status' field can be updated.
+     * @deny (list, delete) Listing all orders and deleting are denied.
      */
     match /orders/{orderId} {
       allow create, get: if true;
-      allow list, update, delete: if false;
+      allow update: if request.resource.data.keys().hasOnly(['status']) &&
+                       request.resource.data.status is string;
+      allow list, delete: if false;
     }
   }
 }
