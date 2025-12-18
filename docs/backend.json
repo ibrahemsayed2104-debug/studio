@@ -71,7 +71,7 @@
         "itemCount": { "type": "number" },
         "status": {
           "type": "string",
-          "enum": ["قيد المعالجة", "تم الشحن", "تم التوصيل", "ملغي"],
+          "enum": ["قيد المعالجة", "تم الشحن", "تم التوصيل", "تم استلام الطلب", "ملغي"],
           "description": "The current status of the order."
         },
         "createdAt": { "type": "string", "format": "date-time" }

@@ -41,7 +41,7 @@ interface OrderData extends DocumentData {
   };
 }
 
-const ORDER_STATUSES = ['قيد المعالجة', 'تم الشحن', 'تم التوصيل', 'ملغي'];
+const ORDER_STATUSES = ['قيد المعالجة', 'تم الشحن', 'تم التوصيل', 'تم استلام الطلب', 'ملغي'];
 
 export default function OrdersPage() {
   const [orderId, setOrderId] = useState('');
@@ -114,6 +114,7 @@ export default function OrdersPage() {
   const getStatusVariant = (status: string) => {
     switch (status) {
       case 'تم التوصيل':
+      case 'تم استلام الطلب':
         return 'default';
       case 'تم الشحن':
         return 'secondary';
@@ -216,7 +217,7 @@ export default function OrdersPage() {
                       </div>
                   </div>
               </CardContent>
-              {order.status === 'تم التوصيل' && (
+              {(order.status === 'تم التوصيل' || order.status === 'تم استلام الطلب') && (
                   <CardFooter className="border-t pt-6">
                       <div className="text-center w-full text-green-600 flex items-center justify-center gap-2">
                           <CheckCircle2 className="h-5 w-5" />
