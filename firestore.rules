@@ -21,7 +21,6 @@
  *     This allows the store owner to update the order status from the app without exposing other
  *     order data to modification. All other fields are immutable.
  *   - Deletes are disabled from the client-side for data integrity.
- * - Deny by Default: Any operation not explicitly granted is denied.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -52,8 +51,9 @@ service cloud.firestore {
      */
     match /orders/{orderId} {
       allow create, get: if true;
-      allow update: if request.resource.data.keys().hasOnly(['status']) &&
-                       request.resource.data.status in ['قيد المعالجة', 'تم الشحن', 'تم التوصيل', 'تم استلام الطلب', 'ملغي'];
+      allow update: if request.resource.data.status != resource.data.status &&
+                       request.resource.data.status in ['قيد المعالجة', 'تم الشحن', 'تم التوصيل', 'تم استلام الطلب', 'ملغي'] &&
+                       request.resource.data.keys().diff(resource.data.keys()).hasOnly(['status', 'createdAt']);
       allow list, delete: if false;
     }
   }
