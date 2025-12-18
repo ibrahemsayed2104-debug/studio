@@ -17,9 +17,8 @@
  *   - Anyone can create an order (`create: if true`).
  *   - A specific order can be read by anyone (`get: if true`).
  *   - Listing all documents in the `orders` collection is denied for privacy (`list: if false`).
- *   - Updates are allowed ONLY for the 'status' field, and only to one of the predefined values.
- *     This allows the store owner to update the order status from the app without exposing other
- *     order data to modification. All other fields are immutable.
+ *   - Updates are allowed ONLY if the new 'status' field is one of the predefined values. This allows the
+ *     store owner to update the order status from the app without exposing other order data to modification.
  *   - Deletes are disabled from the client-side for data integrity.
  */
 rules_version = '2';
