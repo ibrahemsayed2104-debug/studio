@@ -6,11 +6,13 @@ import { useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, AlertCircle, ShoppingBag } from 'lucide-react';
+import { Loader2, AlertCircle, ShoppingBag, Truck, CheckCircle, PackageOpen } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
 
 interface OrderData extends DocumentData {
   id: string;
@@ -46,6 +48,8 @@ export default function AdminDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<Record<string, string>>({});
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
+
 
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -77,7 +81,8 @@ export default function AdminDashboardPage() {
     return () => unsubscribe();
   }, [firestore]);
 
-  const handleUpdateStatus = async (orderId: string) => {
+  const handleUpdateStatus = async (orderId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent dialog from opening when clicking the button
     const newStatus = updatingStatus[orderId];
     if (!newStatus || !firestore) return;
 
@@ -105,15 +110,31 @@ export default function AdminDashboardPage() {
     switch (status) {
       case 'تم التوصيل':
       case 'تم استلام الطلب':
-        return 'default';
+        return 'default'; // Green
       case 'تم الشحن':
-        return 'secondary';
+        return 'secondary'; // Gray
       case 'قيد المعالجة':
-        return 'outline';
+        return 'outline'; // Yellowish/brownish
        case 'ملغي':
-        return 'destructive';
+        return 'destructive'; // Red
       default:
         return 'outline';
+    }
+  };
+  
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'تم التوصيل':
+      case 'تم استلام الطلب':
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case 'تم الشحن':
+        return <Truck className="h-5 w-5 text-blue-500" />;
+      case 'قيد المعالجة':
+        return <PackageOpen className="h-5 w-5 text-yellow-500" />;
+      case 'ملغي':
+        return <AlertCircle className="h-5 w-5 text-red-500" />;
+      default:
+        return <PackageOpen className="h-5 w-5 text-gray-500" />;
     }
   };
 
@@ -156,58 +177,112 @@ export default function AdminDashboardPage() {
       )}
 
       {!isLoading && !error && orders.length > 0 && (
-         <Card>
-            <CardHeader>
-                <CardTitle>جميع الطلبات ({orders.length})</CardTitle>
-                <CardDescription>هذه هي قائمة بجميع الطلبات التي تم استلامها.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>رقم الطلب</TableHead>
-                            <TableHead>العميل</TableHead>
-                            <TableHead>التاريخ</TableHead>
-                            <TableHead>الحالة الحالية</TableHead>
-                            <TableHead className="w-[350px]">تغيير الحالة</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {orders.map(order => (
-                            <TableRow key={order.id}>
-                                <TableCell className="font-medium">#{order.id.slice(-6)}</TableCell>
-                                <TableCell>{order.customer.name}</TableCell>
-                                <TableCell>{new Date(order.createdAt.seconds * 1000).toLocaleDateString('ar-EG')}</TableCell>
-                                <TableCell>
-                                    <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
-                                </TableCell>
-                                <TableCell>
-                                    <div className="flex items-center gap-2">
-                                        <Select value={updatingStatus[order.id]} onValueChange={(newStatus) => handleStatusChange(order.id, newStatus)}>
-                                            <SelectTrigger className="w-[180px]">
-                                                <SelectValue placeholder="اختر حالة" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {ORDER_STATUSES.map(status => (
-                                                    <SelectItem key={status} value={status}>{status}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <Button
-                                            onClick={() => handleUpdateStatus(order.id)}
-                                            disabled={updatingId === order.id || order.status === updatingStatus[order.id]}
-                                            size="sm"
-                                        >
-                                            {updatingId === order.id ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : 'تحديث'}
-                                        </Button>
+         <Dialog>
+            <Card>
+                <CardHeader>
+                    <CardTitle>جميع الطلبات ({orders.length})</CardTitle>
+                    <CardDescription>انقر على أي طلب لعرض تفاصيله الكاملة.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="border rounded-lg">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="text-right">رقم الطلب</TableHead>
+                                    <TableHead className="text-right">العميل</TableHead>
+                                    <TableHead className="text-right">التاريخ</TableHead>
+                                    <TableHead className="text-right">الحالة الحالية</TableHead>
+                                    <TableHead className="text-right w-[350px]">تغيير الحالة</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {orders.map(order => (
+                                    <DialogTrigger key={order.id} asChild>
+                                        <TableRow onClick={() => setSelectedOrder(order)} className="cursor-pointer">
+                                            <TableCell className="font-medium">#{order.id.slice(-6)}</TableCell>
+                                            <TableCell>{order.customer.name}</TableCell>
+                                            <TableCell>{new Date(order.createdAt.seconds * 1000).toLocaleDateString('ar-EG')}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
+                                            </TableCell>
+                                            <TableCell onClick={(e) => e.stopPropagation()}>
+                                                <div className="flex items-center gap-2">
+                                                    <Select value={updatingStatus[order.id]} onValueChange={(newStatus) => handleStatusChange(order.id, newStatus)}>
+                                                        <SelectTrigger className="w-[180px]">
+                                                            <SelectValue placeholder="اختر حالة" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {ORDER_STATUSES.map(status => (
+                                                                <SelectItem key={status} value={status}>{status}</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <Button
+                                                        onClick={(e) => handleUpdateStatus(order.id, e)}
+                                                        disabled={updatingId === order.id || order.status === updatingStatus[order.id]}
+                                                        size="sm"
+                                                    >
+                                                        {updatingId === order.id ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : 'تحديث'}
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    </DialogTrigger>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {selectedOrder && (
+                 <DialogContent className="sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-headline flex items-center gap-4">
+                            تفاصيل الطلب 
+                            <span className="font-mono text-base bg-muted px-2 py-1 rounded">#{selectedOrder.id.slice(-6)}</span>
+                        </DialogTitle>
+                         <DialogDescription>
+                            تم إنشاء الطلب في: {new Date(selectedOrder.createdAt.seconds * 1000).toLocaleString('ar-EG')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-6">
+                        <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                            {getStatusIcon(selectedOrder.status)}
+                            <span className="font-semibold">الحالة الحالية:</span>
+                            <Badge variant={getStatusVariant(selectedOrder.status)}>{selectedOrder.status}</Badge>
+                        </div>
+                        
+                        <Separator />
+
+                        <div>
+                            <h3 className="font-semibold mb-2 font-headline">معلومات العميل</h3>
+                            <div className="text-sm space-y-1 text-muted-foreground">
+                                <p><strong className="text-foreground">الاسم:</strong> {selectedOrder.customer.name}</p>
+                                <p><strong className="text-foreground">رقم الهاتف:</strong> {selectedOrder.customer.phone}</p>
+                                <p><strong className="text-foreground">العنوان:</strong> {selectedOrder.customer.address}</p>
+                            </div>
+                        </div>
+
+                        <Separator />
+
+                        <div>
+                            <h3 className="font-semibold mb-2 font-headline">المنتجات المطلوبة ({selectedOrder.itemCount})</h3>
+                            <div className="space-y-4">
+                                {selectedOrder.items.map((item, index) => (
+                                    <div key={index} className="p-3 border rounded-md bg-background">
+                                        <p className="font-medium text-foreground">{item.productName} (الكمية: {item.quantity})</p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                           <strong>التخصيص:</strong> {item.customization.fabric}, {item.customization.size}, {item.customization.color}, {item.customization.style}
+                                        </p>
                                     </div>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </CardContent>
-         </Card>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+            )}
+         </Dialog>
       )}
     </div>
   );
