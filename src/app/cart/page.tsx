@@ -124,6 +124,9 @@ export default function CheckoutPage() {
     };
 
     try {
+      if (!firestore) {
+        throw new Error("Firestore is not initialized");
+      }
       const orderRef = doc(firestore, 'orders', orderId.trim());
       setDoc(orderRef, orderData)
         .catch(async (serverError) => {
@@ -221,7 +224,7 @@ export default function CheckoutPage() {
                     {selectedCountry === 'مصر' && (
                         <div className="space-y-2">
                             <Label htmlFor="governorate">المحافظة</Label>
-                            <Select name="governorate" required value={selectedGovernorate} onValueChange={setSelectedGovernorate}>
+                            <Select name="governorate" required={selectedCountry === 'مصر'} value={selectedGovernorate} onValueChange={setSelectedGovernorate}>
                                 <SelectTrigger id="governorate">
                                     <SelectValue placeholder="اختر المحافظة" />
                                 </SelectTrigger>
@@ -321,3 +324,5 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+    

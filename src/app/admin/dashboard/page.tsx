@@ -160,7 +160,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {error && !isLoading && (
+      {error && (
          <Alert variant="destructive" className="max-w-lg mx-auto">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>خطأ</AlertTitle>
@@ -287,3 +287,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    

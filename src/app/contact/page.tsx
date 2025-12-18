@@ -51,22 +51,25 @@ export default function ContactPage() {
   const [cities, setCities] = useState<string[]>([]);
 
   useEffect(() => {
+    let newCities: string[] = [];
     if (selectedCountry === 'مصر') {
       const governorateData = EGYPT_GOVERNORATES.find(g => g.governorate === selectedGovernorate);
-      setCities(governorateData ? governorateData.cities : []);
+      newCities = governorateData ? governorateData.cities : [];
     } else if (selectedCountry === 'المملكة العربية السعودية') {
-      setCities(SAUDI_CITIES);
-    } else {
-      setCities([]);
+      newCities = SAUDI_CITIES;
     }
-    form.setValue('city', '');
+    setCities(newCities);
+    form.resetField('city');
   }, [selectedCountry, selectedGovernorate, form]);
   
   useEffect(() => {
-    if (selectedCountry === 'مصر') {
-      form.setValue('governorate', EGYPT_GOVERNORATES[0].governorate);
+    if (selectedCountry !== 'مصر') {
+      form.unregister('governorate');
     } else {
-      form.setValue('governorate', undefined);
+        form.register('governorate');
+        if (!form.getValues('governorate')) {
+             form.setValue('governorate', EGYPT_GOVERNORATES[0].governorate);
+        }
     }
   }, [selectedCountry, form]);
 
@@ -293,3 +296,5 @@ export default function ContactPage() {
     </div>
   );
 }
+
+    
