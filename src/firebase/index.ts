@@ -25,9 +25,10 @@ export function initializeFirebase() {
   // We can return null for auth.
   let auth: Auth | null = null;
   try {
+    // This might fail if auth is not configured in the project, which is fine now.
     auth = getAuth(firebaseApp);
   } catch (e) {
-    // This might fail if auth is not configured in the project, which is fine now.
+    console.warn("Firebase Auth could not be initialized. This is expected if it's not enabled in your project.");
   }
   
   return getSdks(firebaseApp, auth);
