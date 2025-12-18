@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ShoppingCart } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import type { Product } from '@/lib/types';
+import { Input } from '@/components/ui/input';
 
 interface ProductDetailsProps {
   product: Product;
@@ -18,13 +19,15 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   const [quantity, setQuantity] = useState(1);
   const [fabric, setFabric] = useState(fabrics[0]);
   const [size, setSize] = useState(SIZES[0]);
+  const [customSize, setCustomSize] = useState('');
   const [color, setColor] = useState(COLORS[0]);
   const [style, setStyle] = useState(STYLES[0]);
   
   const { addToCart } = useCart();
 
   const handleAddToCart = () => {
-    addToCart(product, quantity, { fabric, size, color, style });
+    const finalSize = size === 'حجم مخصص' ? customSize : size;
+    addToCart(product, quantity, { fabric, size: finalSize, color, style });
   };
 
   return (
@@ -77,6 +80,17 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                   </SelectContent>
                 </Select>
               </div>
+              {size === 'حجم مخصص' && (
+                <div className="space-y-2 sm:col-span-2">
+                  <label htmlFor="custom-size" className="text-sm font-medium">أدخل المقاس المخصص (مثال: 220x280 سم)</label>
+                  <Input 
+                    id="custom-size"
+                    value={customSize}
+                    onChange={(e) => setCustomSize(e.target.value)}
+                    placeholder="العرض x الارتفاع"
+                  />
+                </div>
+              )}
               {/* Color */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">اللون</label>
@@ -101,7 +115,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           </div>
           
           <div className="mt-8 flex items-center gap-4">
-            <Button size="lg" onClick={handleAddToCart} className="flex-1 font-bold">
+            <Button size="lg" onClick={handleAddToCart} className="flex-1 font-bold" disabled={size === 'حجم مخصص' && !customSize}>
               <ShoppingCart className="ms-2 h-5 w-5" />
               إضافة إلى السلة
             </Button>
