@@ -34,7 +34,8 @@ export function Footer() {
             <ul className="mt-4 space-y-2">
               <li><Link href="/" className="text-sm hover:text-primary transition-colors">الرئيسية</Link></li>
               <li><Link href="/virtual-mockup" className="text-sm hover:text-primary transition-colors">جرّبها في منزلك</Link></li>
-              <li><Link href="/orders" className="text-sm hover:text-primary transition-colors">طلباتي</Link></li>
+              <li><Link href="/orders" className="text-sm hover:text-primary transition-colors">تتبع طلبك</Link></li>
+              <li><Link href="/admin" className="text-sm hover:text-primary transition-colors">إدارة الطلبات</Link></li>
               <li><Link href="/contact" className="text-sm hover:text-primary transition-colors">تواصل معنا</Link></li>
             </ul>
           </div>

@@ -50,7 +50,7 @@ function OrderSuccessContent() {
             </div>
           )}
           <p className="text-muted-foreground">
-            يمكنك تتبع حالة طلبك من صفحة <Link href="/orders" className="text-primary hover:underline">طلباتي</Link>.
+            يمكنك تتبع حالة طلبك من صفحة <Link href="/orders" className="text-primary hover:underline">تتبع طلبك</Link>.
           </p>
           <Button asChild size="lg" className="mt-8 font-bold">
             <Link href="/">مواصلة التسوق</Link>
