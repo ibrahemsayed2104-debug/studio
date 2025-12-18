@@ -17,9 +17,9 @@
  *   - Anyone can create an order (`create: if true`).
  *   - A specific order can be read by anyone (`get: if true`).
  *   - Listing all documents in the `orders` collection is denied for privacy (`list: if false`).
- *   - Updates are allowed ONLY for the 'status' field. This allows the store owner to update
- *     the order status from the app without exposing other order data to modification.
- *     All other fields are immutable.
+ *   - Updates are allowed ONLY for the 'status' field, and only to one of the predefined values.
+ *     This allows the store owner to update the order status from the app without exposing other
+ *     order data to modification. All other fields are immutable.
  *   - Deletes are disabled from the client-side for data integrity.
  * - Deny by Default: Any operation not explicitly granted is denied.
  */
@@ -47,13 +47,13 @@ service cloud.firestore {
      * @description Stores customer orders.
      * @path /orders/{orderId}
      * @allow (create, get) Anyone can place and view a specific order.
-     * @allow (update) Only the 'status' field can be updated.
+     * @allow (update) Only the 'status' field can be updated to a valid status.
      * @deny (list, delete) Listing all orders and deleting are denied.
      */
     match /orders/{orderId} {
       allow create, get: if true;
       allow update: if request.resource.data.keys().hasOnly(['status']) &&
-                       request.resource.data.status is string;
+                       request.resource.data.status in ['قيد المعالجة', 'تم الشحن', 'تم التوصيل', 'تم استلام الطلب', 'ملغي'];
       allow list, delete: if false;
     }
   }
