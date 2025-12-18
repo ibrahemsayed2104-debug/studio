@@ -1,19 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { doc, getDoc, updateDoc, DocumentData } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, DocumentData } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, PackageSearch, AlertCircle, ShoppingBag, CheckCircle2 } from 'lucide-react';
+import { Loader2, PackageSearch, AlertCircle, ShoppingBag } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import Image from 'next/image';
-import { PRODUCTS } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 interface OrderData extends DocumentData {
   id: string;
@@ -43,57 +41,52 @@ interface OrderData extends DocumentData {
 
 const ORDER_STATUSES = ['قيد المعالجة', 'تم الشحن', 'تم التوصيل', 'تم استلام الطلب', 'ملغي'];
 
-export default function OrdersPage() {
-  const [orderId, setOrderId] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+export default function OrdersDashboardPage() {
+  const [orders, setOrders] = useState<OrderData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [order, setOrder] = useState<OrderData | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [updatingStatus, setUpdatingStatus] = useState<Record<string, string>>({});
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
   const firestore = useFirestore();
   const { toast } = useToast();
 
-  const handleTrackOrder = async () => {
-    if (!orderId.trim()) {
-      setError('الرجاء إدخال رقم الطلب.');
-      return;
-    }
-    
-    setIsLoading(true);
-    setError(null);
-    setOrder(null);
+  useEffect(() => {
+    const ordersRef = collection(firestore, 'orders');
+    const q = query(ordersRef, orderBy('createdAt', 'desc'));
 
-    try {
-      const orderRef = doc(firestore, 'orders', orderId.trim());
-      const orderSnap = await getDoc(orderRef);
-
-      if (orderSnap.exists()) {
-        const data = orderSnap.data() as OrderData;
-        data.id = orderSnap.id;
-        setOrder(data);
-        setSelectedStatus(data.status);
-      } else {
-        setError('لم يتم العثور على طلب بهذا الرقم. يرجى التحقق مرة أخرى.');
+    const unsubscribe = onSnapshot(q, 
+      (snapshot) => {
+        const fetchedOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OrderData));
+        setOrders(fetchedOrders);
+        const initialStatus: Record<string, string> = {};
+        fetchedOrders.forEach(order => {
+          initialStatus[order.id] = order.status;
+        });
+        setUpdatingStatus(initialStatus);
+        setIsLoading(false);
+      },
+      (err) => {
+        console.error(err);
+        setError('حدث خطأ أثناء جلب الطلبات. قد تكون بسبب قيود الأمان.');
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error(err);
-      setError('حدث خطأ أثناء جلب الطلب. الرجاء المحاولة مرة أخرى.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    );
 
-  const handleUpdateStatus = async () => {
-    if (!order || !selectedStatus) return;
+    return () => unsubscribe();
+  }, [firestore]);
 
-    setIsUpdating(true);
+  const handleUpdateStatus = async (orderId: string) => {
+    const newStatus = updatingStatus[orderId];
+    if (!newStatus) return;
+
+    setUpdatingId(orderId);
     try {
-      const orderRef = doc(firestore, 'orders', order.id);
-      await updateDoc(orderRef, { status: selectedStatus });
-      setOrder(prevOrder => prevOrder ? { ...prevOrder, status: selectedStatus } : null);
+      const orderRef = doc(firestore, 'orders', orderId);
+      await updateDoc(orderRef, { status: newStatus });
       toast({
         title: 'تم تحديث الحالة',
-        description: `تم تحديث حالة الطلب إلى "${selectedStatus}".`,
+        description: `تم تحديث حالة الطلب #${orderId.slice(-4)} إلى "${newStatus}".`,
       });
     } catch (err) {
       console.error(err);
@@ -103,12 +96,8 @@ export default function OrdersPage() {
         description: 'لم نتمكن من تحديث حالة الطلب. الرجاء المحاولة مرة أخرى.',
       });
     } finally {
-      setIsUpdating(false);
+      setUpdatingId(null);
     }
-  };
-
-  const getProductImage = (productId: string) => {
-    return PRODUCTS.find(p => p.id === productId)?.image || '';
   };
   
   const getStatusVariant = (status: string) => {
@@ -127,138 +116,124 @@ export default function OrdersPage() {
     }
   };
 
+  const handleStatusChange = (orderId: string, newStatus: string) => {
+    setUpdatingStatus(prev => ({ ...prev, [orderId]: newStatus }));
+  };
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-8 md:py-12">
+    <div className="container mx-auto max-w-6xl px-4 py-8 md:py-12">
       <div className="text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-headline font-bold text-foreground">
-          تتبع طلبك
+          لوحة تحكم الطلبات
         </h1>
         <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-          أدخل رقم طلبك أدناه لمعرفة حالته وتفاصيله.
+          عرض وإدارة جميع الطلبات الواردة من هنا.
         </p>
       </div>
 
-      <Card className="max-w-lg mx-auto">
-        <CardHeader>
-          <CardTitle>أدخل رقم الطلب</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
-            <Input
-              type="text"
-              value={orderId}
-              onChange={(e) => setOrderId(e.target.value)}
-              placeholder="مثال: order_1699982042468"
-              className="flex-grow"
-            />
-            <Button onClick={handleTrackOrder} disabled={isLoading}>
-              {isLoading ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : <PackageSearch className="ms-2 h-4 w-4" />}
-              تتبع
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {isLoading && (
+        <div className="text-center text-muted-foreground py-10">
+          <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
+          <p className="mt-4">جاري تحميل الطلبات...</p>
+        </div>
+      )}
 
-      <div className="mt-8">
-        {isLoading && (
-          <div className="text-center text-muted-foreground py-10">
-            <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
-            <p className="mt-4">جاري البحث عن طلبك...</p>
-          </div>
-        )}
+      {error && !isLoading && (
+         <Alert variant="destructive" className="max-w-lg mx-auto">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>خطأ</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-        {error && !isLoading && (
-           <Alert variant="destructive" className="max-w-lg mx-auto">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>خطأ</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+      {!isLoading && !error && orders.length === 0 && (
+        <div className="text-center text-muted-foreground py-20 max-w-lg mx-auto border-2 border-dashed rounded-lg">
+            <ShoppingBag className="h-16 w-16 mx-auto" />
+            <h3 className="mt-6 text-2xl font-headline">لا توجد طلبات بعد</h3>
+            <p className="mt-2 max-w-xs mx-auto">عندما يقوم العميل بإجراء طلب جديد، سيظهر هنا.</p>
+        </div>
+      )}
 
-        {!isLoading && !error && order && (
-           <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in-50 duration-500">
-             <Card>
-              <CardHeader>
-                  <div className="flex justify-between items-start">
-                      <div>
-                          <CardTitle className="font-headline text-2xl">تفاصيل الطلب</CardTitle>
-                          <CardDescription>رقم الطلب: {order.id}</CardDescription>
-                      </div>
-                      <Badge variant={getStatusVariant(order.status)} className="text-sm">{order.status}</Badge>
-                  </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                  <Separator />
-                  <div className="space-y-4">
-                      <h3 className="font-semibold">ملخص الطلب</h3>
-                       {order.items.map((item, index) => (
-                          <div key={index} className="flex items-center gap-4">
-                              <div className="relative h-16 w-16 rounded-md overflow-hidden border">
-                                  <Image src={getProductImage(item.productId)} alt={item.productName} fill className="object-cover" />
-                              </div>
-                              <div className="flex-1">
-                                  <p className="font-medium">{item.productName}</p>
-                                  <p className="text-sm text-muted-foreground">الكمية: {item.quantity}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                      {item.customization.fabric}, {item.customization.size}, {item.customization.color}, {item.customization.style}
-                                  </p>
-                              </div>
-                          </div>
-                       ))}
-                  </div>
-                   <Separator />
-                  <div className="space-y-4">
-                      <h3 className="font-semibold">معلومات الشحن</h3>
-                      <div className="text-sm text-muted-foreground space-y-1">
-                          <p><span className="font-medium text-foreground">الاسم:</span> {order.customer.name}</p>
-                          <p><span className="font-medium text-foreground">العنوان:</span> {order.customer.address}</p>
-                          <p><span className="font-medium text-foreground">رقم الهاتف:</span> {order.customer.phone}</p>
-                      </div>
-                  </div>
-              </CardContent>
-              {(order.status === 'تم التوصيل' || order.status === 'تم استلام الطلب') && (
-                  <CardFooter className="border-t pt-6">
-                      <div className="text-center w-full text-green-600 flex items-center justify-center gap-2">
-                          <CheckCircle2 className="h-5 w-5" />
-                          <p className="font-medium">تم توصيل هذا الطلب بنجاح.</p>
-                      </div>
-                  </CardFooter>
-              )}
-             </Card>
-
-             <Card>
-                <CardHeader>
-                  <CardTitle>إدارة الطلب</CardTitle>
-                  <CardDescription>تغيير حالة الطلب الحالية.</CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col sm:flex-row gap-4 items-center">
-                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                    <SelectTrigger className="w-full sm:w-[200px]">
-                      <SelectValue placeholder="اختر حالة جديدة" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ORDER_STATUSES.map(status => (
-                        <SelectItem key={status} value={status}>{status}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={handleUpdateStatus} disabled={isUpdating || order.status === selectedStatus} className="w-full sm:w-auto">
-                    {isUpdating && <Loader2 className="ms-2 h-4 w-4 animate-spin" />}
-                    تحديث الحالة
-                  </Button>
-                </CardContent>
-              </Card>
-           </div>
-        )}
-        
-         {!isLoading && !error && !order && (
-            <div className="text-center text-muted-foreground py-10 max-w-lg mx-auto">
-                <ShoppingBag className="h-16 w-16 mx-auto" />
-                <p className="mt-4 max-w-xs mx-auto">ستظهر تفاصيل طلبك هنا بعد البحث.</p>
-            </div>
-          )}
-      </div>
+      {!isLoading && !error && orders.length > 0 && (
+         <Card>
+            <CardHeader>
+                <CardTitle>جميع الطلبات ({orders.length})</CardTitle>
+                <CardDescription>هذه هي قائمة بجميع الطلبات التي تم استلامها.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Accordion type="single" collapsible className="w-full">
+                    {orders.map(order => (
+                        <AccordionItem value={order.id} key={order.id}>
+                            <AccordionTrigger className="hover:no-underline hover:bg-muted/50 px-4 rounded-md">
+                                <div className="flex flex-1 items-center justify-between gap-4">
+                                    <div className="text-right">
+                                        <p className="font-bold">#{order.id.slice(-6)}</p>
+                                        <p className="text-sm text-muted-foreground">{order.customer.name}</p>
+                                    </div>
+                                    <div className="text-center">
+                                       <Badge variant={getStatusVariant(order.status)} className="text-sm">{order.status}</Badge>
+                                    </div>
+                                    <div className="text-left text-sm text-muted-foreground">
+                                        {new Date(order.createdAt.seconds * 1000).toLocaleDateString('ar-EG')}
+                                    </div>
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="p-4 bg-muted/20 border-b">
+                                 <div className="space-y-6">
+                                    <div className="space-y-4">
+                                        <h4 className="font-semibold">ملخص الطلب ({order.itemCount})</h4>
+                                        {order.items.map((item, index) => (
+                                            <div key={index} className="flex items-center gap-4">
+                                                <div className="flex-1">
+                                                    <p className="font-medium">{item.productName} (x{item.quantity})</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {item.customization.fabric}, {item.customization.size}, {item.customization.color}, {item.customization.style}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <Separator />
+                                    <div className="space-y-4">
+                                        <h4 className="font-semibold">معلومات الشحن</h4>
+                                        <div className="text-sm text-muted-foreground space-y-1">
+                                            <p><span className="font-medium text-foreground">الاسم:</span> {order.customer.name}</p>
+                                            <p><span className="font-medium text-foreground">العنوان:</span> {order.customer.address}</p>
+                                            <p><span className="font-medium text-foreground">رقم الهاتف:</span> {order.customer.phone}</p>
+                                        </div>
+                                    </div>
+                                     <Separator />
+                                     <div className="space-y-2">
+                                        <h4 className="font-semibold">تحديث حالة الطلب</h4>
+                                        <div className="flex flex-col sm:flex-row gap-2 items-center">
+                                            <Select value={updatingStatus[order.id]} onValueChange={(newStatus) => handleStatusChange(order.id, newStatus)}>
+                                                <SelectTrigger className="w-full sm:w-[200px]">
+                                                    <SelectValue placeholder="اختر حالة جديدة" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                {ORDER_STATUSES.map(status => (
+                                                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                                                ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <Button 
+                                                onClick={() => handleUpdateStatus(order.id)} 
+                                                disabled={updatingId === order.id || order.status === updatingStatus[order.id]} 
+                                                className="w-full sm:w-auto"
+                                            >
+                                                {updatingId === order.id && <Loader2 className="ms-2 h-4 w-4 animate-spin" />}
+                                                تحديث الحالة
+                                            </Button>
+                                        </div>
+                                     </div>
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
+            </CardContent>
+         </Card>
+      )}
     </div>
   );
 }

@@ -3,12 +3,13 @@
  *
  * Core Philosophy:
  * With user authentication disabled, the security model is simplified. Data is either public,
- * write-only, or accessible via a known identifier (like an order ID).
+ * write-only, or accessible via a known identifier (like an order ID). The orders collection
+ * is now listable for an admin-like experience.
  *
  * Data Structure:
  * - /curtains: Public catalog, read-only for clients.
  * - /contact_form_entries: Write-only for public contact form.
- * - /orders: Allows creation by anyone, read access by anyone, and status updates by the admin (from the app).
+ * - /orders: Allows creation by anyone, read and list access by anyone for admin purposes. Status can be updated.
  *
  * Key Security Decisions:
  * - Public Catalog: `/curtains` is publicly readable. Writes are disabled.
@@ -16,9 +17,8 @@
  * - Order Security:
  *   - Anyone can create an order (`create: if true`).
  *   - A specific order can be read by anyone (`get: if true`).
- *   - Listing all documents in the `orders` collection is denied for privacy (`list: if false`).
- *   - Updates are allowed ONLY if the new 'status' field is one of the predefined values. This allows the
- *     store owner to update the order status from the app without exposing other order data to modification.
+ *   - Listing all documents in `orders` is now allowed for the admin dashboard view (`list: if true`).
+ *   - Updates are allowed ONLY if the new 'status' field is one of the predefined values.
  *   - Deletes are disabled from the client-side for data integrity.
  */
 rules_version = '2';
@@ -44,14 +44,14 @@ _     * @description Stores submissions from the public contact form.
     /**
      * @description Stores customer orders.
      * @path /orders/{orderId}
-     * @allow (create, get) Anyone can place and view a specific order.
+     * @allow (create, get, list) Anyone can place an order and anyone can view/list orders for admin UI.
      * @allow (update) Only the 'status' field can be updated to a valid status.
-     * @deny (list, delete) Listing all orders and deleting are denied.
+     * @deny (delete) Deleting is denied.
      */
     match /orders/{orderId} {
-      allow create, get: if true;
+      allow create, get, list: if true;
       allow update: if request.resource.data.status in ['قيد المعالجة', 'تم الشحن', 'تم التوصيل', 'تم استلام الطلب', 'ملغي'];
-      allow list, delete: if false;
+      allow delete: if false;
     }
   }
 }
