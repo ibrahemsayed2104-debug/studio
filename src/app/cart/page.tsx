@@ -23,7 +23,7 @@ export default function CheckoutPage() {
 
   const [orderId, setOrderId] = useState('');
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
-  const [selectedGovernorate, setSelectedGovernorate] = useState('');
+  const [selectedGovernorate, setSelectedGovernorate] = useState(EGYPT_GOVERNORATES[0].governorate);
   const [cities, setCities] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState('');
   

@@ -52,12 +52,12 @@ export default function ContactPage() {
 
   useEffect(() => {
     if (selectedCountry === 'مصر') {
-        const governorateData = EGYPT_GOVERNORATES.find(g => g.governorate === selectedGovernorate);
-        setCities(governorateData ? governorateData.cities : []);
+      const governorateData = EGYPT_GOVERNORATES.find(g => g.governorate === selectedGovernorate);
+      setCities(governorateData ? governorateData.cities : []);
     } else if (selectedCountry === 'المملكة العربية السعودية') {
-        setCities(SAUDI_CITIES);
+      setCities(SAUDI_CITIES);
     } else {
-        setCities([]);
+      setCities([]);
     }
     form.setValue('city', '');
   }, [selectedCountry, selectedGovernorate, form]);
