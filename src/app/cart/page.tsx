@@ -21,11 +21,17 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { toast } = useToast();
 
+  const [orderId, setOrderId] = useState('');
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
   const [selectedGovernorate, setSelectedGovernorate] = useState('');
   const [cities, setCities] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState('');
   
+  useEffect(() => {
+    // Generate orderId only on the client side to avoid hydration mismatch
+    setOrderId(`order_${Date.now()}`);
+  }, []);
+
   useEffect(() => {
     if (selectedCountry === 'مصر') {
         const governorateData = EGYPT_GOVERNORATES.find(g => g.governorate === selectedGovernorate);
@@ -61,8 +67,6 @@ export default function CheckoutPage() {
 
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
-
-    const orderId = `order_${Date.now()}`;
 
     // Construct WhatsApp message with RTL mark
     let message = `\u200f*طلب جديد من ${siteConfig.name}*\n`;
