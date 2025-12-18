@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { doc, getDoc, DocumentData, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, DocumentData } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,9 +11,6 @@ import { Loader2, PackageSearch, AlertCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-const ORDER_STATUSES = ['قيد المعالجة', 'تم الشحن', 'تم التوصيل', 'تم استلام الطلب', 'ملغي'];
 
 interface OrderData extends DocumentData {
   id: string;
@@ -44,9 +41,7 @@ interface OrderData extends DocumentData {
 export default function TrackOrderPage() {
   const [orderId, setOrderId] = useState('');
   const [searchedOrder, setSearchedOrder] = useState<OrderData | null>(null);
-  const [newStatus, setNewStatus] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -59,7 +54,6 @@ export default function TrackOrderPage() {
     setIsLoading(true);
     setError(null);
     setSearchedOrder(null);
-    setNewStatus('');
 
     try {
       const orderRef = doc(firestore, 'orders', orderId.trim());
@@ -68,42 +62,19 @@ export default function TrackOrderPage() {
       if (docSnap.exists()) {
         const orderData = { id: docSnap.id, ...docSnap.data() } as OrderData;
         setSearchedOrder(orderData);
-        setNewStatus(orderData.status);
       } else {
         setError('لم يتم العثور على طلب بهذا الرقم. يرجى التحقق من الرقم والمحاولة مرة أخرى.');
       }
     } catch (e) {
       console.error(e);
       setError('حدث خطأ أثناء البحث عن طلبك. يرجى المحاولة مرة أخرى لاحقًا.');
+      toast({
+        variant: 'destructive',
+        title: 'خطأ في البحث',
+        description: 'حدث خطأ أثناء البحث عن الطلب. قد يكون السبب قيود الأمان.',
+      });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleUpdateStatus = async () => {
-    if (!searchedOrder || !newStatus || !firestore) return;
-
-    setIsUpdating(true);
-    try {
-      const orderRef = doc(firestore, 'orders', searchedOrder.id);
-      await updateDoc(orderRef, { status: newStatus });
-      
-      setSearchedOrder(prev => prev ? { ...prev, status: newStatus } : null);
-      
-      toast({
-        title: 'تم تحديث الحالة',
-        description: `تم تحديث حالة الطلب إلى "${newStatus}".`,
-      });
-
-    } catch (error) {
-       console.error("Error updating status: ", error);
-       toast({
-        variant: 'destructive',
-        title: 'فشل التحديث',
-        description: 'حدث خطأ أثناء تحديث حالة الطلب. قد يكون السبب قيود الأمان.',
-      });
-    } finally {
-        setIsUpdating(false);
     }
   };
 
@@ -172,8 +143,7 @@ export default function TrackOrderPage() {
       )}
 
       {!isLoading && !error && searchedOrder && (
-        <>
-          <Card>
+        <Card>
             <CardHeader>
               <CardTitle>تفاصيل الطلب #{searchedOrder.id.slice(-6)}</CardTitle>
               <div className="flex justify-between items-center pt-2">
@@ -210,29 +180,6 @@ export default function TrackOrderPage() {
               </div>
             </CardContent>
           </Card>
-          
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>إدارة الطلب (خاص بالمسؤول)</CardTitle>
-              <CardDescription>يمكنك تحديث حالة الطلب من هنا.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col sm:flex-row gap-2">
-              <Select value={newStatus} onValueChange={setNewStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder="اختر حالة جديدة" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ORDER_STATUSES.map(status => (
-                    <SelectItem key={status} value={status}>{status}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button onClick={handleUpdateStatus} disabled={isUpdating || newStatus === searchedOrder.status}>
-                {isUpdating ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : 'تحديث الحالة'}
-              </Button>
-            </CardContent>
-          </Card>
-        </>
       )}
     </div>
   );
