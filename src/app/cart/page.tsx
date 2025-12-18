@@ -124,7 +124,7 @@ export default function CheckoutPage() {
     };
 
     try {
-      const orderRef = doc(firestore, 'orders', orderId);
+      const orderRef = doc(firestore, 'orders', orderId.trim());
       setDoc(orderRef, orderData)
         .catch(async (serverError) => {
           const permissionError = new FirestorePermissionError({
