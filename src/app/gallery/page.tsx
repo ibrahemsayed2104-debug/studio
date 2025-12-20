@@ -4,9 +4,9 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { GalleryVertical, X } from 'lucide-react';
+import { GalleryVertical, X, Video } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { galleryImages } from '@/lib/gallery-images';
+import { galleryImages, type GalleryItem } from '@/lib/gallery-images';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
@@ -15,10 +15,60 @@ const categories = [
   { id: 'roman', name: 'روماني', images: galleryImages.roman },
   { id: 'hotel', name: 'فندقية', images: galleryImages.hotel },
   { id: 'modern', name: 'مودرن', images: galleryImages.modern },
+  { id: 'videos', name: 'فيديوهات', images: galleryImages.videos },
 ];
 
 export default function GalleryPage() {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
+
+  const renderGridItem = (item: GalleryItem) => {
+    if (item.type === 'video') {
+      return (
+        <button
+          key={item.id}
+          onClick={() => setSelectedItem(item)}
+          className="relative w-full rounded-lg overflow-hidden shadow-lg group border transition-all duration-300 hover:shadow-2xl hover:scale-105 block cursor-pointer bg-black"
+          style={{ aspectRatio: item.aspectRatio || '16/9' }}
+        >
+          <video
+            src={item.url}
+            className="object-cover w-full h-full"
+            muted
+            loop
+            playsInline
+            onMouseOver={e => e.currentTarget.play()}
+            onMouseOut={e => e.currentTarget.pause()}
+          />
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-100 group-hover:opacity-0 transition-opacity">
+            <Video className="h-12 w-12 text-white" />
+          </div>
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+             <Video className="h-12 w-12 text-white" />
+          </div>
+        </button>
+      );
+    }
+
+    return (
+       <button
+        key={item.id}
+        onClick={() => setSelectedItem(item)}
+        className="relative w-full h-auto rounded-lg overflow-hidden shadow-lg group border transition-all duration-300 hover:shadow-2xl hover:scale-105 block cursor-pointer"
+        style={{ aspectRatio: item.aspectRatio || 'auto' }}
+      >
+        <Image
+            src={item.url}
+            alt={`${item.hint} design ${item.id}`}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            data-ai-hint={item.hint}
+        />
+        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+      </button>
+    );
+  };
+
 
   return (
     <>
@@ -27,16 +77,16 @@ export default function GalleryPage() {
           <div className="flex justify-center items-center gap-4">
             <GalleryVertical className="h-10 w-10 text-primary" />
             <h1 className="text-4xl md:text-5xl font-headline font-bold text-foreground">
-              معرض الصور
+              معرض الصور والفيديوهات
             </h1>
           </div>
           <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-            استكشف أحدث التصاميم والإلهامات من مجموعاتنا المختارة حسب الفئة.
+            استكشف أحدث التصاميم، الإلهامات، والفيديوهات التوضيحية من مجموعاتنا المختارة.
           </p>
         </div>
 
         <Tabs defaultValue={categories[0].id} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-8">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-8">
             {categories.map(category => (
               <TabsTrigger key={category.id} value={category.id}>{category.name}</TabsTrigger>
             ))}
@@ -44,23 +94,10 @@ export default function GalleryPage() {
 
           {categories.map(category => (
             <TabsContent key={category.id} value={category.id} forceMount={false}>
-              <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-                {category.images.map((image) => (
-                  <div key={image.id} className="break-inside-avoid">
-                    <button
-                      onClick={() => setSelectedImage(image.url)}
-                      className="relative w-full h-auto rounded-lg overflow-hidden shadow-lg group border transition-all duration-300 hover:shadow-2xl hover:scale-105 block cursor-pointer"
-                    >
-                      <Image
-                        src={image.url}
-                        alt={`${category.name} curtain design ${image.id}`}
-                        className="object-cover w-full h-auto"
-                        width={800}
-                        height={1000}
-                        data-ai-hint={image.hint}
-                      />
-                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </button>
+              <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+                {category.images.map((item) => (
+                  <div key={item.id} className="break-inside-avoid">
+                    {renderGridItem(item)}
                   </div>
                 ))}
               </div>
@@ -69,25 +106,34 @@ export default function GalleryPage() {
         </Tabs>
       </div>
 
-      <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
+      <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
         <DialogContent className="max-w-5xl h-[90vh] p-2 sm:p-4 bg-transparent border-0 shadow-none flex items-center justify-center">
-            <DialogTitle className="sr-only">عرض مكبر للصورة</DialogTitle>
+            <DialogTitle className="sr-only">عرض مكبر للمحتوى</DialogTitle>
             <div className="relative w-full h-full">
-                {selectedImage && (
+                {selectedItem?.type === 'image' && (
                     <Image
-                        src={selectedImage}
+                        src={selectedItem.url}
                         alt="Enlarged gallery view"
                         fill
                         className="object-contain"
+                    />
+                )}
+                 {selectedItem?.type === 'video' && (
+                    <video
+                        src={selectedItem.url}
+                        className="object-contain w-full h-full"
+                        controls
+                        autoPlay
+                        loop
                     />
                 )}
             </div>
              <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setSelectedImage(null)}
+                onClick={() => setSelectedItem(null)}
                 className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/50 hover:bg-black/70 text-white rounded-full z-50"
-                aria-label="Close image view"
+                aria-label="Close view"
              >
                 <X className="h-6 w-6" />
              </Button>
@@ -96,5 +142,3 @@ export default function GalleryPage() {
     </>
   );
 }
-
-    
