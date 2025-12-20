@@ -14,7 +14,7 @@
  * The data is organized into two main categories:
  * 1. User-Scoped Data: All personal customer information is nested under
  *    `/customers/{customerId}`, including their profiles, orders, and order items.
- *    Access is controlled by matching the authenticated user's ID with the
+ *    Access is controlled by matching the authenticated user's UID with the
  *    `customerId` in the path.
  * 2. Top-Level Collections: These serve distinct, global purposes:
  *    - `/orders`: Publicly writable for new orders, but locked down for reads/updates.
