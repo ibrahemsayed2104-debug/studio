@@ -2,10 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, ShoppingCart, GalleryVertical, Home, Package, Smartphone, Users, Phone, MapPin, Wand2, ShieldCheck, LogIn, LogOut, User as UserIcon } from 'lucide-react';
+import { Menu, ShoppingCart, GalleryVertical, Home, Smartphone, Wand2, ChevronDown, Package, Phone, MapPin, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
-import { getAuth, signOut } from 'firebase/auth';
-import { useUser } from '@/firebase';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -23,17 +21,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useToast } from '@/hooks/use-toast';
 
 const navLinks = [
   { href: '/', label: 'الرئيسية', icon: Home },
   { href: '/gallery', label: 'المعرض', icon: GalleryVertical },
   { href: '/virtual-mockup', label: 'جرّبها في منزلك', icon: Smartphone },
   { href: '/design-assistant', label: 'مساعد التصميم', icon: Wand2 },
-  { href: '/orders', label: 'تتبع طلبك', icon: Package },
-  { href: '/contact', label: 'تواصل معنا', icon: Phone },
 ];
+
+const usefulLinks = [
+    { href: '/orders', label: 'تتبع طلبك', icon: Package },
+    { href: '/contact', label: 'تواصل معنا', icon: Phone },
+]
 
 const adminLinks = [
     { href: '/admin/dashboard', label: 'إدارة الطلبات', icon: ShieldCheck },
@@ -43,7 +42,6 @@ export function Header() {
   const pathname = usePathname();
   const { itemCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { toast } = useToast();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -68,23 +66,43 @@ export function Header() {
                 </Link>
               </Button>
             ))}
-             <Button variant="ghost" asChild className="text-foreground/80 hover:text-primary">
-              <Link href={siteConfig.contact.googleMapsUrl} target="_blank" rel="noopener noreferrer">
-                <MapPin className="ms-2 h-4 w-4" />
-                الموقع
-              </Link>
-            </Button>
-            {adminLinks.map((link) => (
-                <Button key={link.href} variant="outline" asChild className={cn(
-                  'transition-colors',
-                  pathname.startsWith('/admin') ? 'text-primary font-semibold border-primary' : 'text-foreground/80 hover:text-primary'
-                )}>
-                  <Link href={link.href}>
-                    <link.icon className="ms-2 h-4 w-4" />
-                    {link.label}
-                  </Link>
-                </Button>
-              ))}
+            
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="text-foreground/80 hover:text-primary">
+                        روابط مفيدة
+                        <ChevronDown className="me-2 h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                    <DropdownMenuLabel>روابط العملاء</DropdownMenuLabel>
+                    {usefulLinks.map(link => (
+                         <DropdownMenuItem key={link.href} asChild>
+                            <Link href={link.href}>
+                                <link.icon className="ms-2 h-4 w-4" />
+                                {link.label}
+                            </Link>
+                        </DropdownMenuItem>
+                    ))}
+                     <DropdownMenuItem asChild>
+                        <Link href={siteConfig.contact.googleMapsUrl} target="_blank" rel="noopener noreferrer">
+                            <MapPin className="ms-2 h-4 w-4" />
+                            الموقع
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>روابط المدير</DropdownMenuLabel>
+                     {adminLinks.map(link => (
+                         <DropdownMenuItem key={link.href} asChild>
+                            <Link href={link.href}>
+                                <link.icon className="ms-2 h-4 w-4" />
+                                {link.label}
+                            </Link>
+                        </DropdownMenuItem>
+                    ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+
           </nav>
           
           <div className="flex items-center gap-2">
@@ -118,7 +136,7 @@ export function Header() {
                     <CurtainIcon className="h-6 w-6 text-primary" />
                     <span className="font-bold font-headline text-2xl">{siteConfig.name}</span>
                   </Link>
-                  {navLinks.map((link) => (
+                  {[...navLinks, ...usefulLinks].map((link) => (
                     <Link
                       key={link.href}
                       href={link.href}
