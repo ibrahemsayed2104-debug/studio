@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   RecaptchaVerifier,
@@ -15,8 +15,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Phone, KeyRound } from 'lucide-react';
 
-// To avoid storing sensitive objects in state and causing re-renders,
-// we'll manage the confirmationResult and verifier in refs.
 export default function LoginPage() {
   const router = useRouter();
   const auth = useAuth();
@@ -30,53 +28,39 @@ export default function LoginPage() {
 
   const confirmationResultRef = useRef<ConfirmationResult | null>(null);
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
-
-  useEffect(() => {
-    // This effect runs once on mount to ensure the auth service is ready.
-    if (!auth) {
-      setError("خدمة المصادقة غير متاحة.");
-      return;
-    }
-
-    // Cleanup function to clear the verifier when the component unmounts.
-    return () => {
-      recaptchaVerifierRef.current?.clear();
-    };
-  }, [auth]);
+  
+  // This container is required by RecaptchaVerifier
+  const recaptchaContainerId = "recaptcha-container";
 
 
   const handleSendOtp = async () => {
     setError(null);
-    const trimmedPhoneNumber = phoneNumber.trim();
+    setIsLoading(true);
 
-    if (!/^\d{10,11}$/.test(trimmedPhoneNumber)) {
-      setError('الرجاء إدخال رقم هاتف مصري صالح (10 أو 11 رقمًا).');
+    if (!auth) {
+      setError("خدمة المصادقة غير متاحة.");
+      setIsLoading(false);
       return;
     }
     
-    if (!auth) {
-      setError("خدمة المصادقة غير متاحة.");
-      return;
+    // Always destroy the old verifier if it exists
+    if (recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current.clear();
     }
 
-    setIsLoading(true);
-
     try {
-      // Always create a new verifier on each attempt to avoid state issues.
-      const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible',
-        'callback': (response: any) => {
-          // reCAPTCHA solved, this callback is typically for auto-send logic
-          // which we handle manually below.
+      const verifier = new RecaptchaVerifier(auth, recaptchaContainerId, {
+        size: 'invisible',
+        'callback': () => {
+          // reCAPTCHA solved
         },
         'expired-callback': () => {
            setError('انتهت صلاحية reCAPTCHA. الرجاء المحاولة مرة أخرى.');
-           setIsLoading(false);
         }
       });
       recaptchaVerifierRef.current = verifier;
 
-      const fullPhoneNumber = `+20${trimmedPhoneNumber}`;
+      const fullPhoneNumber = `+20${phoneNumber.trim()}`;
       const result = await signInWithPhoneNumber(auth, fullPhoneNumber, verifier);
       
       confirmationResultRef.current = result;
@@ -94,8 +78,8 @@ export default function LoginPage() {
         errorMessage = 'رقم الهاتف الذي أدخلته غير صالح.';
       } else if (err.code === 'auth/too-many-requests') {
         errorMessage = 'تم إرسال عدد كبير جدًا من الطلبات. الرجاء المحاولة لاحقًا.';
-      } else if (err.message.includes('reCAPTCHA') || err.code === 'auth/operation-not-allowed') {
-        errorMessage = 'فشل التحقق الأمني. الرجاء التأكد من تفعيل "تسجيل الدخول بالهاتف" في لوحة تحكم Firebase.';
+      } else if (err.code === 'auth/operation-not-allowed') {
+        errorMessage = 'تسجيل الدخول بالهاتف غير مفعل. يرجى تفعيله من لوحة تحكم Firebase.';
       }
       setError(errorMessage);
       toast({ variant: 'destructive', title: 'فشل إرسال الرمز', description: errorMessage });
@@ -144,9 +128,7 @@ export default function LoginPage() {
     setIsOtpSent(false); 
     setError(null);
     setOtp('');
-    setPhoneNumber('');
-    confirmationResultRef.current = null;
-    recaptchaVerifierRef.current?.clear();
+    // Do not clear phone number to allow easy retry
   }
 
   return (
@@ -157,13 +139,12 @@ export default function LoginPage() {
           <CardDescription>استخدم رقم هاتفك للوصول إلى حسابك.</CardDescription>
         </CardHeader>
         <CardContent>
-          {/* This container is used by RecaptchaVerifier */}
-          <div id="recaptcha-container"></div>
+          <div id={recaptchaContainerId}></div>
           
           {!isOtpSent ? (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="phone">رقم الهاتف (داخل مصر)</Label>
+                <Label htmlFor="phone">رقم الهاتف (مصر)</Label>
                  <div className="flex items-center gap-2">
                     <span className="inline-flex items-center px-3 rounded-md border border-r-0 border-input bg-muted text-muted-foreground text-sm">
                         +20
@@ -176,12 +157,12 @@ export default function LoginPage() {
                       required
                       placeholder="1112223344"
                       dir="ltr"
-                      className="rounded-l-md"
+                      className="rounded-l-none"
                     />
                 </div>
               </div>
               
-              <Button id="send-otp-button" onClick={handleSendOtp} className="w-full font-bold" disabled={isLoading}>
+              <Button onClick={handleSendOtp} className="w-full font-bold" disabled={isLoading || !phoneNumber}>
                 {isLoading ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : <Phone className="ms-2 h-4 w-4" />}
                 {isLoading ? 'جاري الإرسال...' : 'إرسال رمز التحقق'}
               </Button>
