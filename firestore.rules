@@ -17,7 +17,7 @@
  *    Access is controlled by matching the authenticated user's UID with the
  *    `customerId` in the path.
  * 2. Top-Level Collections: These serve distinct, global purposes:
- *    - `/orders`: Publicly writable for new orders, but locked down for reads/updates.
+ *    - `/orders`: Publicly writable for new orders, and publicly readable/updatable for the admin dashboard.
  *    - `/curtains`, `/customization_options`: Publicly readable product catalogs.
  *    - `/verification_codes`: A temporary, locked-down collection for phone auth.
  *    - `/contact_form_entries`: A write-only collection for public form submissions.
@@ -26,10 +26,9 @@
  * - User Data Privacy: All access to paths under `/customers/{customerId}` is
  *   strictly limited to the authenticated owner of that data. Listing of other
  *   users' data is impossible.
- * - Public Order Creation: The `/orders` collection allows anyone to `create` a new
- *   document, enabling checkout for guests. However, read and update access is
- *   denied to prevent users from seeing each other's orders. Admin access is
- *   handled separately.
+ * - Public Order Management: The `/orders` collection allows anyone to `create` a new
+ *   document, enabling checkout for guests. It also allows anyone to `get`, `list`,
+ *   and `update` to allow the public-facing dashboard to function correctly.
  * - Public Catalog: The `/curtains` and `/customization_options` collections are
  *   publicly readable to facilitate a seamless browsing experience. All write
  *   operations are disabled, reserved for future administrative roles.
@@ -70,14 +69,6 @@ service cloud.firestore {
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
-    
-    /**
-     * Since login is removed, we allow all read/write for the dashboard.
-     * This is not secure for a production application.
-     */
-    function isAdmin() {
-        return true;
-    }
 
     // -------------------------------------------------------------------------
     // Global Collections
@@ -92,7 +83,7 @@ service cloud.firestore {
      * @principle Enable public checkout and a public dashboard.
      */
     match /orders/{orderId} {
-      allow get, list, update: if isAdmin(); // Anyone can read/update for the public dashboard
+      allow get, list, update: if true; // Anyone can read/update for the public dashboard
       allow create: if true; // Anyone can create a new order
       allow delete: if false; // Disallow deleting orders for now
     }
