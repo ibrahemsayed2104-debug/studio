@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import {MediaPart} from 'genkit/media';
 
 const VirtualCurtainMockupInputSchema = z.object({
   roomImage: z
@@ -20,7 +21,7 @@ const VirtualCurtainMockupInputSchema = z.object({
   curtainImage: z
     .string()
     .describe(
-      'A photo of the curtain, as a data URI that must include a MIME type and use Base64 encoding. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.'
+      'A URL of the curtain photo.'
     ),
 });
 export type VirtualCurtainMockupInput = z.infer<typeof VirtualCurtainMockupInputSchema>;
@@ -45,14 +46,27 @@ const virtualCurtainMockupFlow = ai.defineFlow(
     outputSchema: VirtualCurtainMockupOutputSchema,
   },
   async input => {
+
+    const roomImagePart: MediaPart = {
+        media: {
+            url: input.roomImage,
+        }
+    };
+
+    const curtainImagePart: MediaPart = {
+        media: {
+            url: input.curtainImage
+        }
+    };
+
     const {media} = await ai.generate({
       model: 'googleai/gemini-2.5-flash-image-preview',
       prompt: [
-        {media: {url: input.roomImage}},
+        roomImagePart,
         {
           text: 'You are a virtual interior designer. Your task is to superimpose the curtains from the second image onto the window in the first image (the room). Generate a photorealistic image showing how the curtains would look in that room. The final image should only show the room with the new curtains. Pay close attention to the style, color, pattern, and material of the curtains in the reference image. Match the lighting, shadows, and perspective of the room to create a seamless and believable composition.',
         },
-        {media: {url: input.curtainImage}},
+        curtainImagePart,
       ],
       config: {
         responseModalities: ['TEXT', 'IMAGE'],

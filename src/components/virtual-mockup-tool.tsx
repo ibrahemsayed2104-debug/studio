@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useRef } from 'react';
 import Image from 'next/image';
@@ -18,23 +18,6 @@ const toBase64 = (file: File): Promise<string> =>
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = reject;
   });
-
-async function imageUrlToBase64(url: string): Promise<string> {
-    // Use a CORS proxy if running into issues in development
-    const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch image: ${response.statusText}`);
-    }
-    const blob = await response.blob();
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-    });
-}
-
 
 export function VirtualMockupTool() {
   const [roomImage, setRoomImage] = useState<string | null>(null);
@@ -79,16 +62,9 @@ export function VirtualMockupTool() {
     }
     
     try {
-        // The image from the data file might be from a different origin,
-        // which can cause a CORS issue when fetching it to convert to base64.
-        // A proper solution would be to serve these images from our own domain
-        // or ensure the source has permissive CORS policies.
-        // For this demo, we'll try fetching it directly.
-        const curtainImageBase64 = await imageUrlToBase64(selectedCurtain.image);
-
         const result = await virtualCurtainMockup({
             roomImage: roomImage,
-            curtainImage: curtainImageBase64,
+            curtainImage: selectedCurtain.image, // Pass the image URL directly
         });
 
         if (result.mockupImage) {
