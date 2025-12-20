@@ -36,7 +36,7 @@ const navLinks = [
 ];
 
 const adminLinks = [
-    { href: '/admin', label: 'إدارة الطلبات', icon: ShieldCheck },
+    { href: '/admin/dashboard', label: 'إدارة الطلبات', icon: ShieldCheck },
 ]
 
 export function Header() {

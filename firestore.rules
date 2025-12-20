@@ -72,12 +72,11 @@ service cloud.firestore {
     }
     
     /**
-     * Placeholder for admin check. In a real app, this would check a custom claim.
-     * For now, we assume any signed-in user might be an admin for dashboard testing,
-     * but this should be locked down. The middleware provides the actual security.
+     * Since login is removed, we allow all read/write for the dashboard.
+     * This is not secure for a production application.
      */
     function isAdmin() {
-        return isSignedIn();
+        return true;
     }
 
     // -------------------------------------------------------------------------
@@ -85,17 +84,15 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
 
     /**
-     * @description Manages orders. Allows anyone to create an order, but restricts
-     * reading and updating to admins.
+     * @description Manages orders. Allows anyone to create an order, and allows
+     * anyone to read/update for the public dashboard.
      * @path /orders/{orderId}
      * @allow (create) Any user, signed-in or anonymous, can create an order.
-     * @deny (get, list) Prevents users from seeing other users' orders.
-     * @principle Enable public checkout while protecting order data privacy. Admin
-     * access is implicitly handled by allowing signed-in users for now, but
-     * should be a specific role.
+     * @allow (get, list, update) Allows public dashboard to function without login.
+     * @principle Enable public checkout and a public dashboard.
      */
     match /orders/{orderId} {
-      allow get, list, update: if isAdmin(); // Only admins can read/update
+      allow get, list, update: if isAdmin(); // Anyone can read/update for the public dashboard
       allow create: if true; // Anyone can create a new order
       allow delete: if false; // Disallow deleting orders for now
     }
@@ -156,8 +153,8 @@ service cloud.firestore {
       allow get: if false;
       allow list: if false;
       allow create: if true;
-      allow update: if false;
-      allow delete: if false;
+      update: if false;
+      delete: if false;
     }
   }
 }
