@@ -122,6 +122,16 @@ export default function CheckoutPage() {
     };
 
     try {
+      // Step 1: Immediately open WhatsApp. This is crucial to avoid popup blockers.
+      const whatsappUrl = `https://wa.me/${siteConfig.contact.phone}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+      
+      toast({
+        title: "تم توجيهك إلى واتساب!",
+        description: "أرسل الرسالة لتأكيد طلبك.",
+      });
+
+      // Step 2: Save the order to Firestore in the background.
       if (!firestore) {
         throw new Error("Firestore is not initialized");
       }
@@ -138,15 +148,7 @@ export default function CheckoutPage() {
           console.error("Firestore permission error ignored for UI purposes, but logged.", permissionError);
         });
 
-      const whatsappUrl = `https://wa.me/${siteConfig.contact.phone}?text=${encodeURIComponent(message)}`;
-      
-      window.open(whatsappUrl, '_blank');
-
-      toast({
-        title: "تم توجيهك إلى واتساب!",
-        description: "أرسل الرسالة لتأكيد طلبك.",
-      });
-
+      // Step 3: Clear the cart and redirect.
       clearCart();
       router.push(`/order-success?orderId=${orderId}`);
 
@@ -155,7 +157,7 @@ export default function CheckoutPage() {
       toast({
         variant: "destructive",
         title: "حدث خطأ",
-        description: "لم نتمكن من حفظ طلبك. الرجاء المحاولة مرة أخرى.",
+        description: "لم نتمكن من معالجة طلبك بشكل كامل. الرجاء المحاولة مرة أخرى.",
       });
     }
   };
