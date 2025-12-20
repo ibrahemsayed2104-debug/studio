@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   RecaptchaVerifier,
@@ -16,9 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Phone, KeyRound } from 'lucide-react';
 
 // To avoid storing sensitive objects in state and causing re-renders,
-// we'll manage the confirmationResult in a module-level variable.
-let confirmationResult: ConfirmationResult | null = null;
-
+// we'll manage the confirmationResult and verifier in refs.
 export default function LoginPage() {
   const router = useRouter();
   const auth = useAuth();
@@ -30,38 +28,22 @@ export default function LoginPage() {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // This function sets up and returns a new RecaptchaVerifier
-  const setupRecaptcha = () => {
+  const confirmationResultRef = useRef<ConfirmationResult | null>(null);
+  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
+
+  useEffect(() => {
+    // This effect runs once on mount to ensure the auth service is ready.
     if (!auth) {
       setError("خدمة المصادقة غير متاحة.");
-      return null;
-    }
-    
-    // Clean up any previous verifier to avoid conflicts
-    const oldVerifier = document.getElementById('recaptcha-container');
-    if (oldVerifier) {
-      oldVerifier.innerHTML = '';
+      return;
     }
 
-    try {
-      // The verifier is invisible and will be triggered programmatically.
-      return new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible',
-        'callback': (response: any) => {
-          // reCAPTCHA solved, allow signInWithPhoneNumber.
-          // This callback is sometimes used for auto-send on solve.
-        },
-        'expired-callback': () => {
-           setError('انتهت صلاحية reCAPTCHA. الرجاء المحاولة مرة أخرى.');
-           setIsLoading(false);
-        }
-      });
-    } catch (e) {
-      console.error("Recaptcha setup error:", e);
-      setError("فشل إعداد reCAPTCHA. الرجاء تحديث الصفحة والمحاولة مرة أخرى.");
-      return null;
-    }
-  }
+    // Cleanup function to clear the verifier when the component unmounts.
+    return () => {
+      recaptchaVerifierRef.current?.clear();
+    };
+  }, [auth]);
+
 
   const handleSendOtp = async () => {
     setError(null);
@@ -71,27 +53,33 @@ export default function LoginPage() {
       setError('الرجاء إدخال رقم هاتف مصري صالح (10 أو 11 رقمًا).');
       return;
     }
-
+    
     if (!auth) {
       setError("خدمة المصادقة غير متاحة.");
       return;
     }
-    
-    setIsLoading(true);
-    
-    const verifier = setupRecaptcha();
-    if (!verifier) {
-      setIsLoading(false);
-      return;
-    }
 
-    // Always prepend the country code for consistency
-    const fullPhoneNumber = `+20${trimmedPhoneNumber}`;
+    setIsLoading(true);
 
     try {
+      // Always create a new verifier on each attempt to avoid state issues.
+      const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': (response: any) => {
+          // reCAPTCHA solved, this callback is typically for auto-send logic
+          // which we handle manually below.
+        },
+        'expired-callback': () => {
+           setError('انتهت صلاحية reCAPTCHA. الرجاء المحاولة مرة أخرى.');
+           setIsLoading(false);
+        }
+      });
+      recaptchaVerifierRef.current = verifier;
+
+      const fullPhoneNumber = `+20${trimmedPhoneNumber}`;
       const result = await signInWithPhoneNumber(auth, fullPhoneNumber, verifier);
-      // Store the confirmationResult in our module-level variable
-      confirmationResult = result;
+      
+      confirmationResultRef.current = result;
 
       setIsOtpSent(true);
       toast({
@@ -101,24 +89,23 @@ export default function LoginPage() {
 
     } catch (err: any) {
       console.error("Error sending OTP:", err);
-      let errorMessage = 'حدث خطأ أثناء إرسال الرمز. قد يكون السبب مشكلة في إعدادات reCAPTCHA. الرجاء المحاولة مرة أخرى.';
-      if (err.code === 'auth/invalid-phone-number') {
+      let errorMessage = 'حدث خطأ أثناء إرسال الرمز. الرجاء المحاولة مرة أخرى.';
+       if (err.code === 'auth/invalid-phone-number') {
         errorMessage = 'رقم الهاتف الذي أدخلته غير صالح.';
       } else if (err.code === 'auth/too-many-requests') {
         errorMessage = 'تم إرسال عدد كبير جدًا من الطلبات. الرجاء المحاولة لاحقًا.';
       } else if (err.message.includes('reCAPTCHA')) {
-        errorMessage = 'فشل التحقق من reCAPTCHA. الرجاء تحديث الصفحة والتأكد من تفعيل Identity Toolkit API في مشروع Firebase.';
+        errorMessage = 'فشل التحقق من reCAPTCHA. الرجاء التأكد من اتصالك بالإنترنت وتحديث الصفحة.';
       }
       setError(errorMessage);
       toast({ variant: 'destructive', title: 'فشل إرسال الرمز', description: errorMessage });
     } finally {
       setIsLoading(false);
-      // The verifier is tied to the container div, which we clear in setupRecaptcha.
     }
   };
 
   const handleVerifyOtp = async () => {
-    if (!confirmationResult) {
+    if (!confirmationResultRef.current) {
       setError("لم يتم طلب رمز التحقق أو انتهت صلاحيته. الرجاء طلب الرمز أولاً.");
       return;
     }
@@ -131,7 +118,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      await confirmationResult.confirm(otp);
+      await confirmationResultRef.current.confirm(otp);
       toast({
         title: 'تم تسجيل الدخول بنجاح',
         description: 'مرحبًا بك في متجرنا!',
@@ -157,7 +144,9 @@ export default function LoginPage() {
     setIsOtpSent(false); 
     setError(null);
     setOtp('');
-    confirmationResult = null;
+    setPhoneNumber('');
+    confirmationResultRef.current = null;
+    recaptchaVerifierRef.current?.clear();
   }
 
   return (
