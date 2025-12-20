@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
     serverActions: {
-      bodySizeLimit: '20mb',
+      bodySizeLimit: '50mb',
     },
     // Required for the middleware to work correctly.
     instrumentationHook: true,
