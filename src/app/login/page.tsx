@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   RecaptchaVerifier,
@@ -33,49 +33,44 @@ export default function LoginPage() {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const setupRecaptcha = () => {
+  // This effect will run once to ensure the auth service is ready.
+  useEffect(() => {
+    if (!auth) {
+        setError("خدمة المصادقة غير متاحة. الرجاء تحديث الصفحة.");
+    }
+  }, [auth]);
+
+  const setupRecaptcha = (phone: string) => {
+    if (!auth) return;
+
+    // Cleanup previous verifier if it exists
+    if (window.recaptchaVerifier) {
+      window.recaptchaVerifier.clear();
+    }
+    
+    // Create a new verifier
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'send-otp-button', {
+      'size': 'invisible',
+      'callback': (response: any) => {
+        // reCAPTCHA solved, this callback is not the primary path for visible reCAPTCHA
+        // but we keep it for good measure. The main logic is in the promise resolution below.
+      },
+       'expired-callback': () => {
+         setError('انتهت صلاحية reCAPTCHA. الرجاء المحاولة مرة أخرى.');
+         setIsLoading(false);
+      }
+    });
+    
+    return signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
+  }
+
+  const handleSendOtp = async () => {
     if (!auth) {
         setError("خدمة المصادقة غير متاحة.");
         return;
     }
-
-    // Cleanup previous verifier if it exists
-    if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
-    }
-
-    try {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            'size': 'normal', // Use visible reCAPTCHA
-            'callback': (response: any) => {
-                // reCAPTCHA solved, allow signInWithPhoneNumber.
-                // This callback is where you should initiate the phone number sign-in.
-                console.log("reCAPTCHA solved, sending OTP...");
-                handleSendOtp();
-            },
-            'expired-callback': () => {
-                setError('انتهت صلاحية التحقق، الرجاء المحاولة مرة أخرى.');
-                setIsLoading(false);
-            }
-        });
-        window.recaptchaVerifier.render(); // Explicitly render the verifier
-    } catch (e) {
-        console.error("Recaptcha setup error:", e);
-        setError("فشل في إعداد reCAPTCHA. الرجاء تحديث الصفحة.");
-    }
-  }
-
-  // Set up reCAPTCHA on component mount
-  useEffect(() => {
-    setupRecaptcha();
-  }, [auth]);
-
-  const handleSendOtp = async () => {
-    if (!auth || !window.recaptchaVerifier) {
-        setError("خدمة المصادقة أو reCAPTCHA غير جاهزة.");
-        return;
-    }
-    if (phoneNumber.length < 10) {
+    // Basic phone number validation
+    if (!phoneNumber || phoneNumber.length < 10) {
       setError('الرجاء إدخال رقم هاتف صالح.');
       return;
     }
@@ -84,8 +79,9 @@ export default function LoginPage() {
     setError(null);
     
     try {
-      const fullPhoneNumber = `+${phoneNumber}`;
-      const confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, window.recaptchaVerifier);
+      const fullPhoneNumber = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
+      
+      const confirmationResult = await setupRecaptcha(fullPhoneNumber);
       window.confirmationResult = confirmationResult;
 
       setIsOtpSent(true);
@@ -101,11 +97,11 @@ export default function LoginPage() {
         errorMessage = 'رقم الهاتف الذي أدخلته غير صالح.';
       } else if (err.code === 'auth/too-many-requests') {
         errorMessage = 'تم إرسال عدد كبير جدًا من الطلبات. الرجاء المحاولة لاحقًا.';
+      } else if (err.message.includes('reCAPTCHA')) {
+        errorMessage = 'فشل التحقق من reCAPTCHA. الرجاء تحديث الصفحة والمحاولة مرة أخرى.';
       }
       setError(errorMessage);
       toast({ variant: 'destructive', title: 'فشل إرسال الرمز', description: errorMessage });
-      // Reset reCAPTCHA on error
-      setupRecaptcha();
     } finally {
       setIsLoading(false);
     }
@@ -116,7 +112,7 @@ export default function LoginPage() {
       setError("لم يتم طلب رمز التحقق. الرجاء طلب الرمز أولاً.");
       return;
     }
-    if (otp.length < 6) {
+    if (otp.length !== 6) {
       setError('الرجاء إدخال رمز التحقق المكون من 6 أرقام.');
       return;
     }
@@ -126,8 +122,6 @@ export default function LoginPage() {
 
     try {
       const result = await window.confirmationResult.confirm(otp);
-      const user = result.user;
-      console.log("User signed in successfully", user);
       toast({
         title: 'تم تسجيل الدخول بنجاح',
         description: 'مرحبًا بك في متجرنا!',
@@ -147,17 +141,6 @@ export default function LoginPage() {
     }
   };
 
-  // This will be triggered by reCAPTCHA callback
-  const onRecaptchaSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    // The actual OTP sending is handled by the reCAPTCHA callback
-    if (!window.recaptchaVerifier || !window.recaptchaVerifier.getResponse()) {
-        setError("الرجاء التحقق من أنك لست برنامج روبوت.");
-        setIsLoading(false);
-    }
-  };
-
   return (
     <div className="flex items-center justify-center min-h-[70vh] bg-muted/20 py-12">
       <Card className="w-full max-w-md mx-4">
@@ -167,7 +150,7 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           {!isOtpSent ? (
-            <form onSubmit={onRecaptchaSubmit} className="space-y-4">
+            <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="phone">رقم الهاتف (مع رمز الدولة)</Label>
                 <Input
@@ -181,14 +164,11 @@ export default function LoginPage() {
                 />
               </div>
               
-              {/* This container is used by the RecaptchaVerifier */}
-              <div id="recaptcha-container" className="flex justify-center"></div>
-
-              <Button type="submit" className="w-full font-bold" disabled={isLoading}>
+              <Button id="send-otp-button" onClick={handleSendOtp} className="w-full font-bold" disabled={isLoading}>
                 {isLoading ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : <Phone className="ms-2 h-4 w-4" />}
                 {isLoading ? 'جاري الإرسال...' : 'إرسال رمز التحقق'}
               </Button>
-            </form>
+            </div>
           ) : (
             <div className="space-y-4">
               <div className="space-y-2">
@@ -202,13 +182,14 @@ export default function LoginPage() {
                   placeholder="xxxxxx"
                   maxLength={6}
                   dir="ltr"
+                   onKeyUp={(e) => e.key === 'Enter' && handleVerifyOtp()}
                 />
               </div>
               <Button onClick={handleVerifyOtp} className="w-full font-bold" disabled={isLoading}>
                 {isLoading ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : <KeyRound className="ms-2 h-4 w-4" />}
                 التحقق وتسجيل الدخول
               </Button>
-              <Button variant="link" onClick={() => { setIsOtpSent(false); setupRecaptcha(); }} className="w-full">
+              <Button variant="link" onClick={() => { setIsOtpSent(false); setError(null); if (window.recaptchaVerifier) { window.recaptchaVerifier.clear();} }} className="w-full">
                 تغيير رقم الهاتف
               </Button>
             </div>
