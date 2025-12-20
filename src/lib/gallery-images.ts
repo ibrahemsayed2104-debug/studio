@@ -25,10 +25,6 @@ export const galleryImages: { [key: string]: GalleryItem[] } = {
     { id: 'ho-2', url: 'https://images.unsplash.com/photo-1549294413-26f195200c16?w=800&q=80', hint: 'hotel room', type: 'image', aspectRatio: '4/3' },
     { id: 'ho-3', url: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80', hint: 'luxury hotel', type: 'image', aspectRatio: '4/3' },
     { id: 'ho-4', url: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=800&q=80', hint: 'blackout curtain', type: 'image', aspectRatio: '4/3' },
-    { id: 'ho-5', url: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&q=80', hint: 'resort window', type: 'image', aspectRatio: '4/3' },
-    { id: 'ho-6', url: 'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&q=80', hint: 'suite interior', type: 'image', aspectRatio: '4/3' },
-    { id: 'ho-7', url: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&q=80', hint: 'hotel bed', type: 'image', aspectRatio: '4/3' },
-    { id: 'ho-8', url: 'https://images.unsplash.com/photo-1568495248636-6432b97bd949?w=800&q=80', hint: 'vacation room', type: 'image', aspectRatio: '4/3' },
     { id: 'ho-9', url: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800&q=80', hint: 'modern hotel', type: 'image', aspectRatio: '4/3' },
   ],
   modern: [
@@ -40,8 +36,7 @@ export const galleryImages: { [key: string]: GalleryItem[] } = {
     { id: 'mo-6', url: 'https://img.youm7.com/ArticleImgs/2017/8/9/88518-%D8%B3%D8%AA%D8%A7%D8%A6%D8%B1-%D9%85%D9%88%D8%AF%D8%B1%D9%86.jpg', hint: 'contemporary curtain', type: 'image', aspectRatio: '4/3' },
   ],
   videos: [
-      { id: 'vi-1', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4', hint: 'curtain installation', type: 'video', aspectRatio: '16/9' },
-      { id: 'vi-2', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', hint: 'fabric types', type: 'video', aspectRatio: '16/9' },
-      { id: 'vi-3', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4', hint: 'motorized curtain', type: 'video', aspectRatio: '16/9' },
+      { id: 'vi-1', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4', hint: 'curtain showcase', type: 'video', aspectRatio: '16/9' },
+      { id: 'vi-2', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4', hint: 'curtain detail', type: 'video', aspectRatio: '16/9' },
   ]
 };
