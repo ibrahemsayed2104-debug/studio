@@ -94,8 +94,8 @@ export default function LoginPage() {
         errorMessage = 'رقم الهاتف الذي أدخلته غير صالح.';
       } else if (err.code === 'auth/too-many-requests') {
         errorMessage = 'تم إرسال عدد كبير جدًا من الطلبات. الرجاء المحاولة لاحقًا.';
-      } else if (err.message.includes('reCAPTCHA')) {
-        errorMessage = 'فشل التحقق من reCAPTCHA. الرجاء التأكد من اتصالك بالإنترنت وتحديث الصفحة.';
+      } else if (err.message.includes('reCAPTCHA') || err.code === 'auth/operation-not-allowed') {
+        errorMessage = 'فشل التحقق الأمني. الرجاء التأكد من تفعيل "تسجيل الدخول بالهاتف" في لوحة تحكم Firebase.';
       }
       setError(errorMessage);
       toast({ variant: 'destructive', title: 'فشل إرسال الرمز', description: errorMessage });
