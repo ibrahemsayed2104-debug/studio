@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, ShoppingCart, GalleryVertical, Home, Smartphone, Wand2, ChevronDown, Package, Phone, MapPin, ShieldCheck } from 'lucide-react';
+import { Menu, ShoppingCart, GalleryVertical, Home, Smartphone, Wand2, ChevronDown, Package, Phone, MapPin, ShieldCheck, User, Truck } from 'lucide-react';
 import { useState } from 'react';
 
 import { cn } from '@/lib/utils';
@@ -29,19 +29,22 @@ const navLinks = [
   { href: '/design-assistant', label: 'مساعد التصميم', icon: Wand2 },
 ];
 
-const usefulLinks = [
-    { href: '/orders', label: 'تتبع طلبك', icon: Package },
+const customerLinks = [
+    { href: '/orders', label: 'تتبع طلبك', icon: Truck },
     { href: '/contact', label: 'تواصل معنا', icon: Phone },
-]
-
-const adminLinks = [
-    { href: '/admin/dashboard', label: 'إدارة الطلبات', icon: ShieldCheck },
 ]
 
 export function Header() {
   const pathname = usePathname();
   const { itemCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const allMobileLinks = [
+      ...navLinks,
+      ...customerLinks,
+      { href: siteConfig.contact.googleMapsUrl, label: 'الموقع', icon: MapPin, external: true },
+      { href: '/admin/dashboard', label: 'إدارة الطلبات', icon: ShieldCheck, admin: true },
+  ]
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -70,13 +73,13 @@ export function Header() {
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="text-foreground/80 hover:text-primary">
-                        روابط مفيدة
+                        <User className="ms-2 h-4 w-4" />
+                        خدمة العملاء
                         <ChevronDown className="me-2 h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                    <DropdownMenuLabel>روابط العملاء</DropdownMenuLabel>
-                    {usefulLinks.map(link => (
+                    {customerLinks.map(link => (
                          <DropdownMenuItem key={link.href} asChild>
                             <Link href={link.href}>
                                 <link.icon className="ms-2 h-4 w-4" />
@@ -90,16 +93,24 @@ export function Header() {
                             الموقع
                         </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel>روابط المدير</DropdownMenuLabel>
-                     {adminLinks.map(link => (
-                         <DropdownMenuItem key={link.href} asChild>
-                            <Link href={link.href}>
-                                <link.icon className="ms-2 h-4 w-4" />
-                                {link.label}
-                            </Link>
-                        </DropdownMenuItem>
-                    ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="text-foreground/80 hover:text-primary">
+                        <ShieldCheck className="ms-2 h-4 w-4" />
+                        لوحة التحكم
+                        <ChevronDown className="me-2 h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                     <DropdownMenuItem asChild>
+                        <Link href="/admin/dashboard">
+                            <Package className="ms-2 h-4 w-4" />
+                            إدارة الطلبات
+                        </Link>
+                    </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
 
@@ -136,44 +147,22 @@ export function Header() {
                     <CurtainIcon className="h-6 w-6 text-primary" />
                     <span className="font-bold font-headline text-2xl">{siteConfig.name}</span>
                   </Link>
-                  {[...navLinks, ...usefulLinks].map((link) => (
+                  {allMobileLinks.map((link) => (
                     <Link
                       key={link.href}
                       href={link.href}
+                      target={link.external ? '_blank' : undefined}
+                      rel={link.external ? 'noopener noreferrer' : undefined}
                       onClick={() => setMobileMenuOpen(false)}
                       className={cn(
                         'text-lg transition-colors hover:text-foreground/80 flex items-center gap-3',
-                        pathname === link.href ? 'text-primary font-semibold' : 'text-foreground/60'
+                        (pathname === link.href || (link.admin && pathname.startsWith('/admin'))) ? 'text-primary font-semibold' : 'text-foreground/60'
                       )}
                     >
                       <link.icon className="h-5 w-5" />
                       {link.label}
                     </Link>
                   ))}
-                  {adminLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={cn(
-                        'text-lg transition-colors hover:text-foreground/80 flex items-center gap-3',
-                        pathname.startsWith('/admin') ? 'text-primary font-semibold' : 'text-foreground/60'
-                      )}
-                    >
-                      <link.icon className="h-5 w-5" />
-                      {link.label}
-                    </Link>
-                  ))}
-                  <Link
-                      href={siteConfig.contact.googleMapsUrl}
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className='text-lg text-foreground/60 transition-colors hover:text-foreground/80 flex items-center gap-3'
-                    >
-                      <MapPin className="h-5 w-5" />
-                      الموقع
-                    </Link>
                 </div>
               </SheetContent>
             </Sheet>
