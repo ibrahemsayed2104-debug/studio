@@ -45,39 +45,37 @@ const designAdviceFlow = ai.defineFlow(
     outputSchema: DesignAdviceOutputSchema,
   },
   async (input) => {
-    const prompt = `
-      You are an expert interior designer with a specialization in window treatments, specifically curtains. Your brand personality is elegant, helpful, and inspiring. Your goal is to help users find the perfect curtains from our store.
+    
+    const prompt = ai.definePrompt({
+        name: 'designAdvicePrompt',
+        prompt: `
+          You are an expert interior designer with a specialization in window treatments, specifically curtains. Your brand personality is elegant, helpful, and inspiring. Your goal is to help users find the perfect curtains from our store. Your output MUST be in Arabic.
 
-      You will be given a description of a user's room. Your task is to provide a comprehensive recommendation based on their description. All of your output must be in Arabic.
+          You will be given a description of a user's room. Your task is to provide a comprehensive recommendation based on their description.
 
-      Here is the user's room description:
-      "{{{roomDescription}}}"
+          Here is the user's room description:
+          "{{{roomDescription}}}"
 
-      Here is the list of available curtain products you can recommend. You MUST ONLY recommend products from this list, using their exact id.
-      ---
-      ${productList}
-      ---
+          Here is the list of available curtain products you can recommend. You MUST ONLY recommend products from this list, using their exact id.
+          ---
+          ${productList}
+          ---
 
-      Analyze the description and generate a structured response with the following components:
-      1.  **Analysis:** Briefly summarize the style of the room (e.g., "modern and minimalist," "cozy and traditional").
-      2.  **Fabric Recommendation:** Suggest a suitable fabric (like velvet for luxury, or linen for a natural look) and explain why it fits their room.
-      3.  **Color Palette:** Recommend a few specific colors that would complement their existing decor.
-      4.  **Style Tip:** Provide a professional interior design tip. For example, "For a taller and more dramatic look, mount the curtain rod 4-6 inches above the window frame."
-      5.  **Recommended Products:** Choose 2 or 3 products from the provided list that are a perfect match. For each product, you MUST provide its exact 'id', 'name', and a compelling 'reason' for why it's a great choice for them.
+          Analyze the description and generate a structured response with the following components:
+          1.  **Analysis:** Briefly summarize the style of the room (e.g., "modern and minimalist," "cozy and traditional").
+          2.  **Fabric Recommendation:** Suggest a suitable fabric (like velvet for luxury, or linen for a natural look) and explain why it fits their room.
+          3.  **Color Palette:** Recommend a few specific colors that would complement their existing decor.
+          4.  **Style Tip:** Provide a professional interior design tip. For example, "For a taller and more dramatic look, mount the curtain rod 4-6 inches above the window frame."
+          5.  **Recommended Products:** Choose 2 or 3 products from the provided list that are a perfect match. For each product, you MUST provide its exact 'id', 'name', and a compelling 'reason' for why it's a great choice for them.
 
-      Your response MUST be in the structured JSON format defined by the output schema. Do not add any extra text or explanations outside of the JSON structure.
-    `;
-
-    const { output } = await ai.generate({
-      prompt,
-      model: 'googleai/gemini-2.5-flash',
-      output: {
-        schema: DesignAdviceOutputSchema,
-      },
-      context: {
-        roomDescription: input.roomDescription,
-      }
+          Your response MUST be in the structured JSON format defined by the output schema. Do not add any extra text or explanations outside of the JSON structure.
+        `,
+        output: {
+            schema: DesignAdviceOutputSchema,
+        }
     });
+
+    const { output } = await prompt({ roomDescription: input.roomDescription });
 
     if (!output) {
       throw new Error("AI failed to generate design advice.");

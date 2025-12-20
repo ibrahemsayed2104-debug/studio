@@ -50,7 +50,7 @@ const virtualCurtainMockupFlow = ai.defineFlow(
       prompt: [
         {media: {url: input.roomImage}},
         {
-          text: 'Visualize how these curtains would look in the room, and generate an image of the room with the curtains in place. Use the curtain image as reference for the style, color and material of the curtains. Make sure the lighting and shadows match the room.',
+          text: 'You are a virtual interior designer. Your task is to superimpose the curtains from the second image onto the window in the first image (the room). Generate a photorealistic image showing how the curtains would look in that room. The final image should only show the room with the new curtains. Pay close attention to the style, color, pattern, and material of the curtains in the reference image. Match the lighting, shadows, and perspective of the room to create a seamless and believable composition.',
         },
         {media: {url: input.curtainImage}},
       ],
@@ -60,7 +60,7 @@ const virtualCurtainMockupFlow = ai.defineFlow(
     });
     
     if (!media?.url) {
-      throw new Error("لم يتمكن الذكاء الاصطناعي من إنشاء الصورة.");
+      throw new Error("لم يتمكن الذكاء الاصطناعي من إنشاء الصورة. قد يكون السبب هو أن الصورة المحملة لا تحتوي على نافذة واضحة أو أن هناك مشكلة في الخدمة. حاول مرة أخرى بصورة مختلفة.");
     }
     
     return {mockupImage: media.url};

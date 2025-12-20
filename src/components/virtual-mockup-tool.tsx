@@ -20,6 +20,8 @@ const toBase64 = (file: File): Promise<string> =>
   });
 
 async function imageUrlToBase64(url: string): Promise<string> {
+    // Use a CORS proxy if running into issues in development
+    const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`Failed to fetch image: ${response.statusText}`);
@@ -77,6 +79,11 @@ export function VirtualMockupTool() {
     }
     
     try {
+        // The image from the data file might be from a different origin,
+        // which can cause a CORS issue when fetching it to convert to base64.
+        // A proper solution would be to serve these images from our own domain
+        // or ensure the source has permissive CORS policies.
+        // For this demo, we'll try fetching it directly.
         const curtainImageBase64 = await imageUrlToBase64(selectedCurtain.image);
 
         const result = await virtualCurtainMockup({

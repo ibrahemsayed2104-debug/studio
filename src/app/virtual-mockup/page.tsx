@@ -8,7 +8,7 @@ export default function VirtualMockupPage() {
           جرّبها قبل أن تشتريها
         </h1>
         <p className="mt-4 max-w-3xl mx-auto text-lg text-muted-foreground">
-          Use our AI-powered technology to see how curtains will look in your space. Just upload a photo of your room and let us handle the rest!
+          استخدم تقنية الذكاء الاصطناعي لرؤية كيف ستبدو الستائر في مساحتك الخاصة. فقط ارفع صورة لغرفتك ودعنا نتولى الباقي!
         </p>
       </div>
       <VirtualMockupTool />
