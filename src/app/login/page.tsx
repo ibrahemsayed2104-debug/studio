@@ -15,8 +15,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Phone, KeyRound } from 'lucide-react';
 
-// To avoid storing sensitive objects in the window object,
-// we'll manage the confirmationResult in the component's state.
+// To avoid storing sensitive objects in state and causing re-renders,
+// we'll manage the confirmationResult in a module-level variable.
 let confirmationResult: ConfirmationResult | null = null;
 
 export default function LoginPage() {
@@ -44,10 +44,12 @@ export default function LoginPage() {
     }
 
     try {
+      // The verifier is invisible and will be triggered programmatically.
       return new RecaptchaVerifier(auth, 'recaptcha-container', {
         'size': 'invisible',
         'callback': (response: any) => {
           // reCAPTCHA solved, allow signInWithPhoneNumber.
+          // This callback is sometimes used for auto-send on solve.
         },
         'expired-callback': () => {
            setError('انتهت صلاحية reCAPTCHA. الرجاء المحاولة مرة أخرى.');
