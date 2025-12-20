@@ -159,7 +159,7 @@ export default function LoginPage() {
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   required
-                  placeholder="مثال: 201112223344"
+                  placeholder="مثال: +201112223344"
                   dir="ltr"
                 />
               </div>
