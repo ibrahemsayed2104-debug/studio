@@ -10,7 +10,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {MediaPart} from 'genkit/media';
 
 const VirtualCurtainMockupInputSchema = z.object({
   roomImage: z
@@ -47,31 +46,24 @@ const virtualCurtainMockupFlow = ai.defineFlow(
   },
   async input => {
 
-    const roomImagePart: MediaPart = {
-        media: {
-            url: input.roomImage,
-        }
-    };
+    const prompt = ai.definePrompt({
+        name: 'virtualCurtainMockupPrompt',
+        prompt: `You are a virtual interior designer. Your task is to superimpose the curtains from the second image onto the window in the first image (the room). 
+        
+        Room Image:
+        {{media url=roomImage}}
 
-    const curtainImagePart: MediaPart = {
-        media: {
-            url: input.curtainImage
-        }
-    };
+        Curtain Image:
+        {{media url=curtainImage}}
 
-    const {media} = await ai.generate({
-      model: 'googleai/gemini-pro-vision',
-      prompt: [
-        {
-          text: 'You are a virtual interior designer. Your task is to superimpose the curtains from the second image onto the window in the first image (the room). Generate a photorealistic image showing how the curtains would look in that room. The final image should only show the room with the new curtains. Pay close attention to the style, color, pattern, and material of the curtains in the reference image. Match the lighting, shadows, and perspective of the room to create a seamless and believable composition. YOU MUST ONLY OUTPUT THE IMAGE, DO NOT ADD ANY TEXT.',
+        Generate a photorealistic image showing how the curtains would look in that room. The final image should only show the room with the new curtains. Pay close attention to the style, color, pattern, and material of the curtains in the reference image. Match the lighting, shadows, and perspective of the room to create a seamless and believable composition. YOU MUST ONLY OUTPUT THE IMAGE, DO NOT ADD ANY TEXT.`,
+        output: {
+          format: 'media'
         },
-        roomImagePart,
-        curtainImagePart,
-      ],
-      output: {
-        format: 'media'
-      }
+        model: 'googleai/gemini-pro-vision',
     });
+    
+    const {media} = await prompt(input);
     
     if (!media?.url) {
       throw new Error("لم يتمكن الذكاء الاصطناعي من إنشاء الصورة. قد يكون السبب هو أن الصورة المحملة لا تحتوي على نافذة واضحة أو أن هناك مشكلة في الخدمة. حاول مرة أخرى بصورة مختلفة.");
