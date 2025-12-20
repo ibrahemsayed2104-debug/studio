@@ -3,149 +3,72 @@
  * @description Security rules for the StarTak curtain store Firestore database.
  *
  * @section Core Philosophy
- * This ruleset enforces a strict user-ownership model for all customer-related
- * data, ensuring that users can only access their own profiles and orders. It
- * provides public, read-only access to the product catalog to allow browsing
- * for all users, including those not signed in. Administrative data, such as
- * contact form submissions, is write-only for the public and locked from reads,
- * awaiting a proper admin role implementation.
+ * This ruleset enforces a public-access model for orders to facilitate a
+ * login-free checkout and a public admin dashboard. Customer data is not
+ * stored in separate collections, but rather as part of the order itself.
  *
  * @section Data Structure
- * The data is organized into two main categories:
- * 1. User-Scoped Data: All personal customer information is nested under
- *    `/customers/{customerId}`, including their profiles, orders, and order items.
- *    Access is controlled by matching the authenticated user's UID with the
- *    `customerId` in the path.
- * 2. Top-Level Collections: These serve distinct, global purposes:
- *    - `/orders`: Publicly writable for new orders, and publicly readable/updatable for the admin dashboard.
- *    - `/curtains`, `/customization_options`: Publicly readable product catalogs.
- *    - `/verification_codes`: A temporary, locked-down collection for phone auth.
- *    - `/contact_form_entries`: A write-only collection for public form submissions.
+ * - `/orders`: A global collection where all orders are stored. It's publicly
+ *   writable for new checkouts and publicly readable/updatable for the admin
+ *   dashboard to function.
+ * - Other collections like `/curtains` and `/customization_options` are
+ *   publicly readable catalogs.
  *
  * @section Key Security Decisions
- * - User Data Privacy: All access to paths under `/customers/{customerId}` is
- *   strictly limited to the authenticated owner of that data. Listing of other
- *   users' data is impossible.
  * - Public Order Management: The `/orders` collection allows anyone to `create` a new
  *   document, enabling checkout for guests. It also allows anyone to `get`, `list`,
- *   and `update` to allow the public-facing dashboard to function correctly.
- * - Public Catalog: The `/curtains` and `/customization_options` collections are
- *   publicly readable to facilitate a seamless browsing experience. All write
- *   operations are disabled, reserved for future administrative roles.
- * - Secure Verification Codes: The `/verification_codes` collection is highly
- *   restricted. Users can create and delete their own codes but cannot read, list,
- *   or update them, preventing inspection or replay attacks.
+ *   and `update` to allow the public-facing dashboard and order tracking pages
+ *   to function correctly without login.
  * - Default Deny: Any path not explicitly defined in these rules is inaccessible.
- *   All permissions (get, list, create, update, delete) are explicitly defined
- *   for every matched path to prevent accidental openings.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     // -------------------------------------------------------------------------
-    // Helper Functions
-    // -------------------------------------------------------------------------
-
-    /**
-     * Checks if a user is authenticated.
-     */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * Checks if the currently authenticated user's UID matches the provided userId.
-     * This is the primary function for enforcing document ownership.
-     */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    /**
-     * Checks for ownership on an existing document.
-     * Used for update and delete operations to prevent modifying non-existent data.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    // -------------------------------------------------------------------------
-    // Global Collections
+    // Order Management
     // -------------------------------------------------------------------------
 
     /**
      * @description Manages orders. Allows anyone to create an order, and allows
-     * anyone to read/update for the public dashboard.
+     * anyone to read/update for the public dashboard and customer tracking.
      * @path /orders/{orderId}
      * @allow (create) Any user, signed-in or anonymous, can create an order.
-     * @allow (get, list, update) Allows public dashboard to function without login.
+     * @allow (get, list, update) Allows public dashboard and tracking to function.
      * @principle Enable public checkout and a public dashboard.
      */
     match /orders/{orderId} {
-      allow get, list, update: if true; // Anyone can read/update for the public dashboard
+      allow get, list, update: if true; // Anyone can read/update for the public dashboard and tracking
       allow create: if true; // Anyone can create a new order
-      allow delete: if false; // Disallow deleting orders for now
+      allow delete: if false; // Disallow deleting orders
     }
     
     // -------------------------------------------------------------------------
-    // Customer Data (Future use, if full customer accounts are implemented)
+    // Product Catalog & Other Collections
     // -------------------------------------------------------------------------
-
-    match /customers/{customerId} {
-      allow get: if isOwner(customerId);
-      allow list: if false;
-      allow create: if isOwner(customerId) && request.resource.data.id == customerId;
-      allow update: if isExistingOwner(customerId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(customerId);
-    }
-
-    match /customers/{customerId}/orders/{orderId} {
-      allow get, list: if isOwner(customerId);
-      allow create: if isOwner(customerId) && request.resource.data.customerId == customerId;
-      allow update: if isExistingOwner(customerId) && request.resource.data.customerId == resource.data.id;
-      allow delete: if isExistingOwner(customerId);
-    }
-
-    match /customers/{customerId}/orders/{orderId}/order_items/{orderItemId} {
-      allow get, list: if isOwner(customerId);
-      allow create: if isOwner(customerId) && request.resource.data.orderId == orderId;
-      allow update: if isExistingOwner(customerId) && request.resource.data.orderId == resource.data.id;
-      allow delete: if isExistingOwner(customerId);
-    }
-
-    // -------------------------------------------------------------------------
-    // Other Global Collections
-    // -------------------------------------------------------------------------
-    
-    match /verification_codes/{verificationCodeId} {
-      allow get: if false;
-      allow list: if false;
-      allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
-      allow update: if false;
-      allow delete: if isSignedIn() && resource != null && resource.data.customerId == request.auth.uid;
-    }
 
     match /curtains/{curtainId} {
       allow get, list: if true;
-      allow create: if false; 
-      allow update: if false;
-      allow delete: if false;
+      allow create, update, delete: if false;
     }
 
     match /customization_options/{customizationOptionId} {
       allow get, list: if true;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow create, update, delete: if false;
+    }
+    
+    match /contact_form_entries/{contactFormEntryId} {
+      allow create: if true;
+      allow get, list, update, delete: if false;
     }
 
-    match /contact_form_entries/{contactFormEntryId} {
-      allow get: if false;
-      allow list: if false;
-      allow create: if true;
-      update: if false;
-      delete: if false;
+    // Explicitly deny access to collections that are no longer in use
+    // to ensure security.
+    match /customers/{customerId} {
+      allow read, write: if false;
+    }
+    match /verification_codes/{verificationCodeId} {
+        allow read, write: if false;
     }
   }
 }
