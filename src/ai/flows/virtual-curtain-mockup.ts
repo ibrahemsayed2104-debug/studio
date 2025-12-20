@@ -11,6 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {MediaPart} from 'genkit/media';
+import {generate} from 'genkit/generate';
 
 const VirtualCurtainMockupInputSchema = z.object({
   roomImage: z
@@ -59,18 +60,18 @@ const virtualCurtainMockupFlow = ai.defineFlow(
         }
     };
 
-    const {media} = await ai.generate({
-      model: 'googleai/gemini-2.5-flash-image-preview',
+    const {media} = await generate({
+      model: 'googleai/gemini-pro-vision',
       prompt: [
-        roomImagePart,
         {
-          text: 'You are a virtual interior designer. Your task is to superimpose the curtains from the second image onto the window in the first image (the room). Generate a photorealistic image showing how the curtains would look in that room. The final image should only show the room with the new curtains. Pay close attention to the style, color, pattern, and material of the curtains in the reference image. Match the lighting, shadows, and perspective of the room to create a seamless and believable composition.',
+          text: 'You are a virtual interior designer. Your task is to superimpose the curtains from the second image onto the window in the first image (the room). Generate a photorealistic image showing how the curtains would look in that room. The final image should only show the room with the new curtains. Pay close attention to the style, color, pattern, and material of the curtains in the reference image. Match the lighting, shadows, and perspective of the room to create a seamless and believable composition. YOU MUST ONLY OUTPUT THE IMAGE, DO NOT ADD ANY TEXT.',
         },
+        roomImagePart,
         curtainImagePart,
       ],
-      config: {
-        responseModalities: ['TEXT', 'IMAGE'],
-      },
+      output: {
+        format: 'media'
+      }
     });
     
     if (!media?.url) {
