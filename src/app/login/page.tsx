@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   RecaptchaVerifier,
@@ -32,24 +32,34 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const setupRecaptcha = () => {
+  
+  // This effect sets up the RecaptchaVerifier on component mount
+  // and cleans it up on unmount. This is the most stable approach.
+  useEffect(() => {
     if (!auth) return;
-    // Cleanup previous verifier if it exists
-    if (window.recaptchaVerifier) {
-      window.recaptchaVerifier.clear();
-    }
-    
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+
+    // Ensure it's not created multiple times
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
         'size': 'invisible',
         'callback': (response: any) => {
-          // console.log("reCAPTCHA verified");
+          // reCAPTCHA solved, allow signInWithPhoneNumber.
         },
         'expired-callback': () => {
-          // console.log("reCAPTCHA expired");
+          // Response expired. Ask user to solve reCAPTCHA again.
         }
       });
-  }
+    }
+
+    // Cleanup function to clear the verifier when the component unmounts
+    return () => {
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = undefined;
+      }
+    };
+  }, [auth]);
+
 
   const handleSendOtp = async () => {
     if (!auth) {
@@ -65,10 +75,9 @@ export default function LoginPage() {
     setError(null);
     
     try {
-      setupRecaptcha();
       const verifier = window.recaptchaVerifier;
       if (!verifier) {
-        throw new Error("لم يتم إعداد reCAPTCHA بشكل صحيح.");
+        throw new Error("لم يتم إعداد reCAPTCHA بشكل صحيح. الرجاء تحديث الصفحة.");
       }
       
       const fullPhoneNumber = `+${phoneNumber}`;
@@ -144,6 +153,7 @@ export default function LoginPage() {
           <CardDescription>استخدم رقم هاتفك للوصول إلى حسابك.</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* This container is used by the RecaptchaVerifier */}
           <div id="recaptcha-container"></div>
           {!isOtpSent ? (
             <div className="space-y-4">
