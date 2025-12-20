@@ -1,22 +1,213 @@
 {
   "entities": {
+    "Customer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Customer",
+      "type": "object",
+      "description": "Represents a customer who can place orders for curtains.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the customer."
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "Customer's phone number for login verification."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "Customer's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Customer's last name."
+        },
+        "email": {
+          "type": "string",
+          "description": "Customer's email address.",
+          "format": "email"
+        },
+        "address": {
+          "type": "string",
+          "description": "Customer's shipping address."
+        }
+      },
+      "required": [
+        "id",
+        "phoneNumber",
+        "firstName",
+        "lastName"
+      ]
+    },
+    "VerificationCode": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "VerificationCode",
+      "type": "object",
+      "description": "Stores verification codes sent to customers for phone number verification.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the verification code entry."
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "Phone number the verification code was sent to."
+        },
+        "code": {
+          "type": "string",
+          "description": "The verification code."
+        },
+        "expirationTime": {
+          "type": "string",
+          "description": "Expiration time of the verification code.",
+          "format": "date-time"
+        },
+        "customerId": {
+          "type": "string",
+          "description": "Reference to Customer. (Relationship: Customer 1:N VerificationCode)"
+        }
+      },
+      "required": [
+        "id",
+        "phoneNumber",
+        "code",
+        "expirationTime",
+        "customerId"
+      ]
+    },
     "Curtain": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Curtain",
       "type": "object",
-      "description": "Represents a curtain product with its details.",
+      "description": "Represents a type of curtain available for purchase.",
       "properties": {
-        "id": { "type": "string", "description": "Unique identifier for the curtain product." },
-        "name": { "type": "string", "description": "Name of the curtain." },
-        "description": { "type": "string", "description": "Detailed description of the curtain." },
-        "imageUrl": { "type": "string", "description": "URL of the image of the curtain.", "format": "uri" },
-        "price": { "type": "number", "description": "Price of the curtain." },
-        "fabric": { "type": "string", "description": "Fabric of the curtain." },
-        "size": { "type": "string", "description": "Size of the curtain." },
-        "color": { "type": "string", "description": "Color of the curtain." },
-        "style": { "type": "string", "description": "Style of the curtain." }
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the curtain."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the curtain type."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the curtain type."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the image representing the curtain.",
+          "format": "uri"
+        },
+        "price": {
+          "type": "number",
+          "description": "Price of the curtain."
+        }
       },
-      "required": ["id", "name", "description", "imageUrl", "price", "fabric", "size", "color", "style"]
+      "required": [
+        "id",
+        "name",
+        "description",
+        "imageUrl",
+        "price"
+      ]
+    },
+    "CustomizationOption": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CustomizationOption",
+      "type": "object",
+      "description": "Represents a customization option for curtains, such as fabric, size, color, or style.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the customization option."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the customization option (e.g., Fabric, Size, Color)."
+        },
+        "values": {
+          "type": "array",
+          "description": "Available values for the customization option.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "values"
+      ]
+    },
+    "Order": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Order",
+      "type": "object",
+      "description": "Represents an order placed by a customer.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the order."
+        },
+        "customerId": {
+          "type": "string",
+          "description": "Reference to Customer. (Relationship: Customer 1:N Order)"
+        },
+        "orderDate": {
+          "type": "string",
+          "description": "Date the order was placed.",
+          "format": "date-time"
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "Total amount of the order."
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the order (e.g., Pending, Processing, Shipped, Delivered)."
+        }
+      },
+      "required": [
+        "id",
+        "customerId",
+        "orderDate",
+        "totalAmount",
+        "status"
+      ]
+    },
+    "OrderItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OrderItem",
+      "type": "object",
+      "description": "Represents an item within an order.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the order item."
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Reference to Order. (Relationship: Order 1:N OrderItem)"
+        },
+        "curtainId": {
+          "type": "string",
+          "description": "Reference to Curtain. (Relationship: Curtain 1:N OrderItem)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the curtain in the order item."
+        },
+        "customizationOptions": {
+          "type": "string",
+          "description": "JSON string containing key-value pairs that represent the customizations made to the curtain."
+        }
+      },
+      "required": [
+        "id",
+        "orderId",
+        "curtainId",
+        "quantity"
+      ]
     },
     "ContactFormEntry": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -24,94 +215,171 @@
       "type": "object",
       "description": "Represents an entry from the contact form.",
       "properties": {
-        "id": { "type": "string", "description": "Unique identifier for the contact form entry." },
-        "name": { "type": "string", "description": "Name of the person submitting the form." },
-        "email": { "type": "string", "description": "Email of the person submitting the form.", "format": "email" },
-        "message": { "type": "string", "description": "Message content from the contact form." },
-        "submissionDate": { "type": "string", "description": "Date and time when the form was submitted.", "format": "date-time" }
-      },
-      "required": ["id", "name", "email", "message", "submissionDate"]
-    },
-    "Order": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Order",
-      "type": "object",
-      "description": "Represents a customer order.",
-      "properties": {
-        "id": { "type": "string", "description": "Unique identifier for the order (e.g., order_1699982042468)." },
-        "customer": {
-          "type": "object",
-          "properties": {
-            "name": { "type": "string" },
-            "phone": { "type": "string" },
-            "address": { "type": "string" }
-          },
-          "required": ["name", "phone", "address"]
-        },
-        "items": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "productId": { "type": "string" },
-              "productName": { "type": "string" },
-              "quantity": { "type": "number" },
-              "customization": {
-                "type": "object",
-                "properties": {
-                  "fabric": { "type": "string" },
-                  "size": { "type": "string" },
-                  "color": { "type": "string" },
-                  "style": { "type": "string" }
-                }
-              }
-            }
-          }
-        },
-        "itemCount": { "type": "number" },
-        "status": {
+        "id": {
           "type": "string",
-          "enum": ["قيد المعالجة", "تم الشحن", "تم التوصيل", "تم استلام الطلب", "ملغي"],
-          "description": "The current status of the order."
+          "description": "Unique identifier for the contact form entry."
         },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "name": {
+          "type": "string",
+          "description": "Name of the person submitting the form."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email of the person submitting the form.",
+          "format": "email"
+        },
+        "message": {
+          "type": "string",
+          "description": "Message content from the contact form."
+        },
+        "submissionDate": {
+          "type": "string",
+          "description": "Date and time the form was submitted.",
+          "format": "date-time"
+        }
       },
-      "required": ["id", "customer", "items", "status", "createdAt"]
+      "required": [
+        "id",
+        "name",
+        "email",
+        "message",
+        "submissionDate"
+      ]
     }
   },
   "auth": {
-    "providers": []
+    "providers": [
+      "password",
+      "anonymous"
+    ]
   },
   "firestore": {
     "structure": [
       {
+        "path": "/customers/{customerId}",
+        "definition": {
+          "entityName": "Customer",
+          "schema": {
+            "$ref": "#/backend/entities/Customer"
+          },
+          "description": "Stores customer profiles.  Path-based ownership (`request.auth.uid == customerId`).",
+          "params": [
+            {
+              "name": "customerId",
+              "description": "The unique identifier of the customer."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/verification_codes/{verificationCodeId}",
+        "definition": {
+          "entityName": "VerificationCode",
+          "schema": {
+            "$ref": "#/backend/entities/VerificationCode"
+          },
+          "description": "Stores verification codes for phone number authentication. Includes the 'customerId' field for associating the code with a specific customer, which allows rules to verify user's ownership.",
+          "params": [
+            {
+              "name": "verificationCodeId",
+              "description": "Unique identifier for the verification code entry."
+            }
+          ]
+        }
+      },
+      {
         "path": "/curtains/{curtainId}",
         "definition": {
           "entityName": "Curtain",
-          "schema": { "$ref": "#/backend/entities/Curtain" },
-          "description": "Stores curtain product information.",
-          "params": [{ "name": "curtainId", "description": "The unique identifier for a curtain." }]
+          "schema": {
+            "$ref": "#/backend/entities/Curtain"
+          },
+          "description": "Stores curtain product information. Global read, admin write.",
+          "params": [
+            {
+              "name": "curtainId",
+              "description": "The unique identifier of the curtain."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/customization_options/{customizationOptionId}",
+        "definition": {
+          "entityName": "CustomizationOption",
+          "schema": {
+            "$ref": "#/backend/entities/CustomizationOption"
+          },
+          "description": "Stores customization options. Global read, admin write.",
+          "params": [
+            {
+              "name": "customizationOptionId",
+              "description": "The unique identifier of the customization option."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/customers/{customerId}/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Stores orders placed by customers. Path-based ownership (`request.auth.uid == customerId`).",
+          "params": [
+            {
+              "name": "customerId",
+              "description": "The unique identifier of the customer."
+            },
+            {
+              "name": "orderId",
+              "description": "The unique identifier of the order."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/customers/{customerId}/orders/{orderId}/order_items/{orderItemId}",
+        "definition": {
+          "entityName": "OrderItem",
+          "schema": {
+            "$ref": "#/backend/entities/OrderItem"
+          },
+          "description": "Stores individual items within an order. Inherits path-based ownership from the order.",
+          "params": [
+            {
+              "name": "customerId",
+              "description": "The unique identifier of the customer."
+            },
+            {
+              "name": "orderId",
+              "description": "The unique identifier of the order."
+            },
+            {
+              "name": "orderItemId",
+              "description": "The unique identifier of the order item."
+            }
+          ]
         }
       },
       {
         "path": "/contact_form_entries/{contactFormEntryId}",
         "definition": {
           "entityName": "ContactFormEntry",
-          "schema": { "$ref": "#/backend/entities/ContactFormEntry" },
-          "description": "Stores contact form submissions.",
-          "params": [{ "name": "contactFormEntryId", "description": "The unique identifier for a contact form entry." }]
-        }
-      },
-      {
-        "path": "/orders/{orderId}",
-        "definition": {
-          "entityName": "Order",
-          "schema": { "$ref": "#/backend/entities/Order" },
-          "description": "Stores customer orders. The document ID is the human-readable order number.",
-          "params": [{ "name": "orderId", "description": "The unique identifier for an order." }]
+          "schema": {
+            "$ref": "#/backend/entities/ContactFormEntry"
+          },
+          "description": "Stores contact form submissions. Restrict read/write access to admins.",
+          "params": [
+            {
+              "name": "contactFormEntryId",
+              "description": "The unique identifier of the contact form entry."
+            }
+          ]
         }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support the 'Fabrics' curtain store application. It includes collections for the product catalog (`curtains`), contact form submissions (`contact_form_entries`), and now customer orders (`orders`). Authentication is disabled, so security rules are based on public read/write access patterns. The `orders` collection allows public creation and read access for the specific user who knows their order ID, but denies listing all orders."
+    "reasoning": "The Firestore structure is designed to support the StarTak curtain store application, focusing on secure customer authentication, product catalog management, order processing, and customer support. Key considerations include authorization independence, structural segregation, and access modeling to ensure robust security rules and efficient data retrieval.\n\n**Authorization Independence and QAPs:**\n\n*   **/customers/{customerId}:** Stores customer profiles. This collection uses path-based ownership, enabling straightforward security rules based on `request.auth.uid == customerId`. No denormalization is required here.\n*   **/verification_codes/{verificationCodeId}:** Stores verification codes for phone number authentication. Each document contains a `customerId` field. This facilitates QAPs by allowing secure lookups of verification codes associated with a specific customer. Rules can enforce that only the customer associated with the `customerId` can access or delete verification codes.\n*   **/curtains/{curtainId}:** Stores curtain product information.  This collection is globally readable but only writable by authorized admins (not defined in the input, but would be implemented via DBAC). This setup supports QAPs for product listing.\n*   **/customization_options/{customizationOptionId}:** Stores customization options. Similar to curtains, this is globally readable and admin-writable, supporting secure product configuration.\n*   **/customers/{customerId}/orders/{orderId}:** Stores orders placed by customers.  This path-based ownership allows straightforward security rules where `request.auth.uid == customerId`. It supports QAPs for order history retrieval by ensuring that only the authenticated customer can list their orders.\n*   **/customers/{customerId}/orders/{orderId}/order_items/{orderItemId}:** Stores individual items within an order.  This inherits path-based ownership from its parent (orders), ensuring that only the customer who placed the order can access its items.  This structure naturally supports QAPs for order details.\n*   **/contact_form_entries/{contactFormEntryId}:** Stores contact form submissions. This collection can be made writeable to all. Access control to this collection can be restricted to admins only.\n\nThis structure prioritizes Authorization Independence by avoiding `get()` calls in security rules. Path-based ownership and denormalized `customerId` fields ensure that security rules can be written based solely on the `request.auth.uid` and the document's content, which greatly simplifies rules and enhances security."
   }
 }

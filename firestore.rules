@@ -1,56 +1,200 @@
 /**
- * This ruleset is for the 'Fabrics' curtain store application.
+ * @file firestore.rules
+ * @description Security rules for the StarTak curtain store Firestore database.
  *
- * Core Philosophy:
- * With user authentication disabled, the security model is simplified. Data is either public,
- * write-only, or accessible via a known identifier (like an order ID). The orders collection
- * is now listable for an admin-like experience.
+ * @section Core Philosophy
+ * This ruleset enforces a strict user-ownership model for all customer-related
+ * data, ensuring that users can only access their own profiles and orders. It
+ * provides public, read-only access to the product catalog to allow browsing
+ * for all users, including those not signed in. Administrative data, such as
+ * contact form submissions, is write-only for the public and locked from reads,
+ * awaiting a proper admin role implementation.
  *
- * Data Structure:
- * - /curtains: Public catalog, read-only for clients.
- * - /contact_form_entries: Write-only for public contact form.
- * - /orders: Allows creation by anyone, read and list access by anyone for admin UI. Status can be updated.
+ * @section Data Structure
+ * The data is organized into two main categories:
+ * 1. User-Scoped Data: All personal customer information is nested under
+ *    `/customers/{customerId}`, including their profiles, orders, and order items.
+ *    Access is controlled by matching the authenticated user's ID with the
+ *    `customerId` in the path.
+ * 2. Top-Level Collections: These serve distinct, global purposes:
+ *    - `/curtains`, `/customization_options`: Publicly readable product catalogs.
+ *    - `/verification_codes`: A temporary, locked-down collection for phone auth.
+ *    - `/contact_form_entries`: A write-only collection for public form submissions.
  *
- * Key Security Decisions:
- * - Public Catalog: `/curtains` is publicly readable. Writes are disabled.
- * - Write-Only Contact Form: `/contact_form_entries` allows creation, denies all reads.
- * - Order Security:
- *   - Anyone can create an order (`create: if true`).
- *   - A specific order can be read by anyone (`get: if true`).
- *   - Listing all documents in `orders` is now allowed for the admin dashboard view (`list: if true`).
- *   - Updates are allowed ONLY if the new 'status' field is one of the predefined values.
- *   - Deletes are disabled from the client-side for data integrity.
+ * @section Key Security Decisions
+ * - User Data Privacy: All access to paths under `/customers/{customerId}` is
+ *   strictly limited to the authenticated owner of that data. Listing of other
+ *   users' data is impossible.
+ * - Public Catalog: The `/curtains` and `/customization_options` collections are
+ *   publicly readable to facilitate a seamless browsing experience. All write
+ *   operations are disabled, reserved for future administrative roles.
+ * - Secure Verification Codes: The `/verification_codes` collection is highly
+ *   restricted. Users can create and delete their own codes but cannot read, list,
+ *   or update them, preventing inspection or replay attacks.
+ * - Default Deny: Any path not explicitly defined in these rules is inaccessible.
+ *   All permissions (get, list, create, update, delete) are explicitly defined
+ *   for every matched path to prevent accidental openings.
+ *
+ * @section Denormalization for Authorization
+ * To create simpler and more performant rules, authorization data is denormalized.
+ * For example, the `verification_codes` documents contain a `customerId` field.
+ * This allows a fast check against the authenticated user's ID without needing
+ * a costly `get()` call to another document.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // -------------------------------------------------------------------------
+    // Helper Functions
+    // -------------------------------------------------------------------------
+
     /**
-     * @description Publicly readable catalog of curtain products. Writes are disabled.
+     * Checks if a user is authenticated.
      */
-    match /curtains/{curtainId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
+    function isSignedIn() {
+      return request.auth != null;
     }
 
     /**
-_     * @description Stores submissions from the public contact form.
+     * Checks if the currently authenticated user's UID matches the provided userId.
+     * This is the primary function for enforcing document ownership.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Checks for ownership on an existing document.
+     * Used for update and delete operations to prevent modifying non-existent data.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // Customer Data
+    // -------------------------------------------------------------------------
+
+    /**
+     * @description Manages customer profiles. Only the customer themselves can create,
+     * read, or modify their own profile.
+     * @path /customers/{customerId}
+     * @allow A signed-in user (UID 'user123') creating their own profile document
+     * at `/customers/user123`.
+     * @deny A signed-in user (UID 'user456') trying to read the profile at
+     * `/customers/user123`.
+     * @principle Enforces self-creation and strict data ownership for user profiles.
+     */
+    match /customers/{customerId} {
+      allow get: if isOwner(customerId);
+      allow list: if false; // Disallow listing all customers for privacy.
+      allow create: if isOwner(customerId) && request.resource.data.id == customerId;
+      allow update: if isExistingOwner(customerId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(customerId);
+    }
+
+    /**
+     * @description Manages orders placed by a specific customer. Access is inherited
+     * from the parent customer document.
+     * @path /customers/{customerId}/orders/{orderId}
+     * @allow A user (UID 'user123') creating a new order at
+     * `/customers/user123/orders/orderXYZ`.
+     * @deny A user (UID 'user456') trying to list orders under
+     * `/customers/user123/orders`.
+     * @principle Restricts access to a user's own data tree using path-based ownership.
+     */
+    match /customers/{customerId}/orders/{orderId} {
+      allow get, list: if isOwner(customerId);
+      allow create: if isOwner(customerId) && request.resource.data.customerId == customerId;
+      allow update: if isExistingOwner(customerId) && request.resource.data.customerId == resource.data.id;
+      allow delete: if isExistingOwner(customerId);
+    }
+
+    /**
+     * @description Manages the specific items within a customer's order. Access is
+     * inherited from the parent customer document.
+     * @path /customers/{customerId}/orders/{orderId}/order_items/{orderItemId}
+     * @allow A user (UID 'user123') reading an item from their own order at
+     * `/customers/user123/orders/orderXYZ/order_items/itemABC`.
+     * @deny An anonymous user trying to create an order item.
+     * @principle Restricts access to a user's own data tree using path-based ownership.
+     */
+    match /customers/{customerId}/orders/{orderId}/order_items/{orderItemId} {
+      allow get, list: if isOwner(customerId);
+      allow create: if isOwner(customerId) && request.resource.data.orderId == orderId;
+      allow update: if isExistingOwner(customerId) && request.resource.data.orderId == resource.data.id;
+      allow delete: if isExistingOwner(customerId);
+    }
+
+    // -------------------------------------------------------------------------
+    // Global Collections
+    // -------------------------------------------------------------------------
+
+    /**
+     * @description Manages temporary verification codes for phone authentication.
+     * A user can create and delete their own codes but cannot read or update them.
+     * @path /verification_codes/{verificationCodeId}
+     * @allow (create) A signed-in user creating a code where the document's
+     * `customerId` field matches their own UID.
+     * @deny (get) Any user attempting to read a verification code document directly.
+     * @principle Secures sensitive temporary data by preventing reads, updates, and
+     * listings, only allowing owner-based creation and deletion.
+     */
+    match /verification_codes/{verificationCodeId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
+      allow update: if false;
+      allow delete: if isSignedIn() && resource != null && resource.data.customerId == request.auth.uid;
+    }
+
+    /**
+     * @description Publicly readable catalog of available curtains.
+     * Writes are disallowed and reserved for an administrative role.
+     * @path /curtains/{curtainId}
+     * @allow (get) Any user, signed-in or anonymous, can read a curtain's details.
+     * @deny (create) Any user attempting to add a new curtain to the catalog.
+     * @principle Provides public read access for a product catalog while securing
+     * write operations for administrators.
+     */
+    match /curtains/{curtainId} {
+      allow get, list: if true;
+      allow create: if false; // TODO: Implement admin role check
+      allow update: if false; // TODO: Implement admin role check
+      allow delete: if false; // TODO: Implement admin role check
+    }
+
+    /**
+     * @description Publicly readable list of customization options for curtains.
+     * Writes are disallowed and reserved for an administrative role.
+     * @path /customization_options/{customizationOptionId}
+     * @allow (list) Any user, signed-in or anonymous, can list all customization options.
+     * @deny (update) Any user attempting to modify an existing customization option.
+     * @principle Provides public read access for product configuration data while
+     * securing write operations for administrators.
+     */
+    match /customization_options/{customizationOptionId} {
+      allow get, list: if true;
+      allow create: if false; // TODO: Implement admin role check
+      allow update: if false; // TODO: Implement admin role check
+      allow delete: if false; // TODO: Implement admin role check
+    }
+
+    /**
+     * @description Stores entries from the public contact form. Anyone can submit
+     * an entry, but no one can read, update, or delete them via the client.
+     * @path /contact_form_entries/{contactFormEntryId}
+     * @allow (create) An anonymous user submitting the contact form.
+     * @deny (get) Any user trying to read another user's submission.
+     * @principle Allows public write access for data submission while completely
+     * restricting reads and modifications to protect privacy.
      */
     match /contact_form_entries/{contactFormEntryId} {
+      allow get: if false;
+      allow list: if false;
       allow create: if true;
-      allow get, list, update, delete: if false;
-    }
-    
-    /**
-     * @description Stores customer orders.
-     * @path /orders/{orderId}
-     * @allow (create, get, list) Anyone can place an order and anyone can view/list orders for admin UI.
-     * @allow (update) Only the 'status' field can be updated to a valid status.
-     * @deny (delete) Deleting is denied.
-     */
-    match /orders/{orderId} {
-      allow create, get, list: if true;
-      allow update: if request.resource.data.status in ['قيد المعالجة', 'تم الشحن', 'تم التوصيل', 'تم استلام الطلب', 'ملغي'];
+      allow update: if false;
       allow delete: if false;
     }
   }
