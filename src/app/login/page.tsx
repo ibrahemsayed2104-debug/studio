@@ -39,24 +39,28 @@ export default function LoginPage() {
         return null;
     }
     
-    // Cleanup previous verifier if it exists to avoid conflicts
+    // Clean up previous verifier if it exists to avoid conflicts
     if (window.recaptchaVerifier) {
       window.recaptchaVerifier.clear();
     }
     
     try {
+      // Use an invisible reCAPTCHA tied to the button
       const verifier = new RecaptchaVerifier(auth, 'send-otp-button', {
         'size': 'invisible',
         'callback': (response: any) => {
           // reCAPTCHA solved, allow signInWithPhoneNumber.
+          // This callback is sometimes executed automatically if the user is trusted.
         },
         'expired-callback': () => {
            setError('انتهت صلاحية reCAPTCHA. الرجاء المحاولة مرة أخرى.');
            setIsLoading(false);
         }
       });
+      window.recaptchaVerifier = verifier;
       return verifier;
     } catch (e) {
+      console.error("Recaptcha setup error:", e);
       setError("فشل إعداد reCAPTCHA. الرجاء تحديث الصفحة والمحاولة مرة أخرى.");
       setIsLoading(false);
       return null;
@@ -65,7 +69,7 @@ export default function LoginPage() {
 
   const handleSendOtp = async () => {
     setError(null);
-    if (!phoneNumber || !/^\d{10,11}$/.test(phoneNumber)) {
+    if (!phoneNumber.trim() || !/^\d{10,11}$/.test(phoneNumber.trim())) {
       setError('الرجاء إدخال رقم هاتف مصري صالح (10 أو 11 رقمًا).');
       return;
     }
@@ -82,7 +86,7 @@ export default function LoginPage() {
       return;
     }
 
-    const fullPhoneNumber = `+20${phoneNumber}`;
+    const fullPhoneNumber = `+20${phoneNumber.trim()}`;
 
     try {
       const confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, verifier);
@@ -108,8 +112,10 @@ export default function LoginPage() {
       toast({ variant: 'destructive', title: 'فشل إرسال الرمز', description: errorMessage });
     } finally {
       setIsLoading(false);
-      // Clean up verifier after use
-      verifier.clear();
+      // It's generally safer to clear the verifier after each attempt
+      if (verifier) {
+        verifier.clear();
+      }
     }
   };
 
