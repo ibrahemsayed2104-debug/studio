@@ -43,25 +43,7 @@ export function Header() {
   const pathname = usePathname();
   const { itemCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, isUserLoading } = useUser();
   const { toast } = useToast();
-  const auth = getAuth();
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      toast({
-        title: "تم تسجيل الخروج",
-        description: "لقد قمت بتسجيل الخروج بنجاح.",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "خطأ",
-        description: "حدث خطأ أثناء تسجيل الخروج.",
-      });
-    }
-  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -95,7 +77,7 @@ export function Header() {
             {adminLinks.map((link) => (
                 <Button key={link.href} variant="outline" asChild className={cn(
                   'transition-colors',
-                  pathname === link.href ? 'text-primary font-semibold border-primary' : 'text-foreground/80 hover:text-primary'
+                  pathname.startsWith('/admin') ? 'text-primary font-semibold border-primary' : 'text-foreground/80 hover:text-primary'
                 )}>
                   <Link href={link.href}>
                     <link.icon className="ms-2 h-4 w-4" />
@@ -121,45 +103,6 @@ export function Header() {
                 <CartView />
               </SheetContent>
             </Sheet>
-
-            {isUserLoading ? (
-              <div className="w-8 h-8 bg-muted rounded-full animate-pulse" />
-            ) : user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                       <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.phoneNumber || "User"} />
-                       <AvatarFallback>
-                          <UserIcon className="h-5 w-5" />
-                       </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">مرحباً</p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {user.phoneNumber}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                    <LogOut className="ms-2 h-4 w-4" />
-                    <span>تسجيل الخروج</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button asChild variant="ghost">
-                <Link href="/login">
-                  <LogIn className="ms-2 h-4 w-4" />
-                  دخول
-                </Link>
-              </Button>
-            )}
 
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
@@ -196,7 +139,7 @@ export function Header() {
                       onClick={() => setMobileMenuOpen(false)}
                       className={cn(
                         'text-lg transition-colors hover:text-foreground/80 flex items-center gap-3',
-                        pathname === link.href ? 'text-primary font-semibold' : 'text-foreground/60'
+                        pathname.startsWith('/admin') ? 'text-primary font-semibold' : 'text-foreground/60'
                       )}
                     >
                       <link.icon className="h-5 w-5" />
