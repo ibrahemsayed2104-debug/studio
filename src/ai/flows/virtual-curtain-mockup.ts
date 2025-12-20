@@ -11,13 +11,14 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {MediaPart} from 'genkit/media';
-import {generate} from 'genkit/generate';
+import {generate} from 'genkit';
+import {googleAI} from '@genkit-ai/google-genai';
 
 const VirtualCurtainMockupInputSchema = z.object({
   roomImage: z
     .string()
     .describe(
-      'A photo of the room, as a data URI that must include a MIME type and use Base64 encoding. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.'
+      "A photo of the room, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
   curtainImage: z
     .string()
@@ -31,7 +32,7 @@ const VirtualCurtainMockupOutputSchema = z.object({
   mockupImage: z
     .string()
     .describe(
-      'A photo of the room with the curtain virtually applied, as a data URI that must include a MIME type and use Base64 encoding. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.'
+      "A photo of the room with the curtain virtually applied, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
 });
 export type VirtualCurtainMockupOutput = z.infer<typeof VirtualCurtainMockupOutputSchema>;
@@ -61,7 +62,7 @@ const virtualCurtainMockupFlow = ai.defineFlow(
     };
 
     const {media} = await generate({
-      model: 'googleai/gemini-pro-vision',
+      model: googleAI('gemini-pro-vision'),
       prompt: [
         {
           text: 'You are a virtual interior designer. Your task is to superimpose the curtains from the second image onto the window in the first image (the room). Generate a photorealistic image showing how the curtains would look in that room. The final image should only show the room with the new curtains. Pay close attention to the style, color, pattern, and material of the curtains in the reference image. Match the lighting, shadows, and perspective of the room to create a seamless and believable composition. YOU MUST ONLY OUTPUT THE IMAGE, DO NOT ADD ANY TEXT.',
