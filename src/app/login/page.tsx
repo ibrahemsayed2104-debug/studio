@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   RecaptchaVerifier,
@@ -33,55 +33,59 @@ export default function LoginPage() {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // This effect will run once to ensure the auth service is ready.
-  useEffect(() => {
+  const setupRecaptcha = () => {
     if (!auth) {
-        setError("خدمة المصادقة غير متاحة. الرجاء تحديث الصفحة.");
+        setError("خدمة المصادقة غير متاحة.");
+        return null;
     }
-  }, [auth]);
-
-  const setupRecaptcha = (phone: string) => {
-    if (!auth) return;
-
-    // Cleanup previous verifier if it exists
+    
+    // Cleanup previous verifier if it exists to avoid conflicts
     if (window.recaptchaVerifier) {
       window.recaptchaVerifier.clear();
     }
     
-    // Create a new verifier
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'send-otp-button', {
-      'size': 'invisible',
-      'callback': (response: any) => {
-        // reCAPTCHA solved, this callback is not the primary path for visible reCAPTCHA
-        // but we keep it for good measure. The main logic is in the promise resolution below.
-      },
-       'expired-callback': () => {
-         setError('انتهت صلاحية reCAPTCHA. الرجاء المحاولة مرة أخرى.');
-         setIsLoading(false);
-      }
-    });
-    
-    return signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
+    try {
+      const verifier = new RecaptchaVerifier(auth, 'send-otp-button', {
+        'size': 'invisible',
+        'callback': (response: any) => {
+          // reCAPTCHA solved, allow signInWithPhoneNumber.
+        },
+        'expired-callback': () => {
+           setError('انتهت صلاحية reCAPTCHA. الرجاء المحاولة مرة أخرى.');
+           setIsLoading(false);
+        }
+      });
+      return verifier;
+    } catch (e) {
+      setError("فشل إعداد reCAPTCHA. الرجاء تحديث الصفحة والمحاولة مرة أخرى.");
+      setIsLoading(false);
+      return null;
+    }
   }
 
   const handleSendOtp = async () => {
+    setError(null);
+    if (!phoneNumber || !/^\d{10,11}$/.test(phoneNumber)) {
+      setError('الرجاء إدخال رقم هاتف مصري صالح (10 أو 11 رقمًا).');
+      return;
+    }
     if (!auth) {
         setError("خدمة المصادقة غير متاحة.");
         return;
     }
-    // Basic phone number validation
-    if (!phoneNumber || phoneNumber.length < 10) {
-      setError('الرجاء إدخال رقم هاتف صالح.');
+    
+    setIsLoading(true);
+    
+    const verifier = setupRecaptcha();
+    if (!verifier) {
+      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
-    
+    const fullPhoneNumber = `+20${phoneNumber}`;
+
     try {
-      const fullPhoneNumber = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
-      
-      const confirmationResult = await setupRecaptcha(fullPhoneNumber);
+      const confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, verifier);
       window.confirmationResult = confirmationResult;
 
       setIsOtpSent(true);
@@ -104,6 +108,8 @@ export default function LoginPage() {
       toast({ variant: 'destructive', title: 'فشل إرسال الرمز', description: errorMessage });
     } finally {
       setIsLoading(false);
+      // Clean up verifier after use
+      verifier.clear();
     }
   };
 
@@ -121,7 +127,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const result = await window.confirmationResult.confirm(otp);
+      await window.confirmationResult.confirm(otp);
       toast({
         title: 'تم تسجيل الدخول بنجاح',
         description: 'مرحبًا بك في متجرنا!',
@@ -152,16 +158,22 @@ export default function LoginPage() {
           {!isOtpSent ? (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="phone">رقم الهاتف (مع رمز الدولة)</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  required
-                  placeholder="مثال: +201112223344"
-                  dir="ltr"
-                />
+                <Label htmlFor="phone">رقم الهاتف (داخل مصر)</Label>
+                 <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center px-3 rounded-md border border-r-0 border-input bg-muted text-muted-foreground text-sm">
+                        +20
+                    </span>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      required
+                      placeholder="1112223344"
+                      dir="ltr"
+                      className="rounded-l-md"
+                    />
+                </div>
               </div>
               
               <Button id="send-otp-button" onClick={handleSendOtp} className="w-full font-bold" disabled={isLoading}>
