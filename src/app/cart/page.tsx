@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingCart, Wallet } from 'lucide-react';
+import { ShoppingCart, Wallet, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { siteConfig } from '@/lib/config';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,6 +19,7 @@ import { useFirestore } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function CheckoutPage() {
   const { cartItems, itemCount, clearCart } = useCart();
@@ -99,7 +100,9 @@ export default function CheckoutPage() {
     });
     message += `--------------------\n`;
     message += `*إجمالي عدد المنتجات:* ${itemCount}\n\n`;
-    message += `*طريقة الدفع:* الدفع عند الاستلام (كاش)`;
+    message += `*ملحوظة هامة:*\n`;
+    message += `لإتمام الطلب، سيتم دفع 75% من قيمة الطلب مقدمًا. سيتم التواصل معكم للتنسيق.\n\n`;
+    message += `*طريقة الدفع:* الدفع عند الاستلام (الجزء المتبقي)`;
 
     const orderData = {
       customer: {
@@ -275,10 +278,17 @@ export default function CheckoutPage() {
                 <div className="border rounded-md p-4 flex items-center gap-4 bg-muted/30">
                     <Wallet className="h-8 w-8 text-primary"/>
                     <div>
-                        <p className="font-semibold">الدفع عند الاستلام</p>
-                        <p className="text-sm text-muted-foreground">ادفع نقدًا عند وصول طلبك.</p>
+                        <p className="font-semibold">تأكيد الطلب والدفع</p>
+                        <p className="text-sm text-muted-foreground">سيتم دفع المبلغ المتبقي عند استلام طلبك.</p>
                     </div>
                 </div>
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>ملحوظة هامة!</AlertTitle>
+                  <AlertDescription>
+                    لإتمام الطلب، يجب دفع 75% من قيمة الطلب مقدمًا. سيتم التواصل معك لتنسيق عملية الدفع بعد تأكيد الطلب عبر واتساب.
+                  </AlertDescription>
+                </Alert>
               </div>
             </CardContent>
           </Card>
