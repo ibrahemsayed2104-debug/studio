@@ -19,6 +19,18 @@ const toBase64 = (file: File): Promise<string> =>
     reader.onerror = reject;
   });
 
+const urlToDataUri = async (url: string): Promise<string> => {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+};
+
+
 export function VirtualMockupTool() {
   const [roomImage, setRoomImage] = useState<string | null>(null);
   const [selectedCurtainId, setSelectedCurtainId] = useState<string>(PRODUCTS[0].id);
@@ -62,9 +74,11 @@ export function VirtualMockupTool() {
     }
     
     try {
+        const curtainImageAsDataUri = await urlToDataUri(selectedCurtain.image);
+
         const result = await virtualCurtainMockup({
             roomImage: roomImage,
-            curtainImage: selectedCurtain.image, // Pass the image URL directly
+            curtainImage: curtainImageAsDataUri,
         });
 
         if (result.mockupImage) {
