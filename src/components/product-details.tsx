@@ -1,34 +1,15 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
-import { useCart } from '@/context/cart-context';
-import { fabrics, SIZES, COLORS, STYLES } from '@/lib/data';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShoppingCart } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
 import type { Product } from '@/lib/types';
-import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+
 
 interface ProductDetailsProps {
   product: Product;
 }
 
 export function ProductDetails({ product }: ProductDetailsProps) {
-  const [quantity, setQuantity] = useState(1);
-  const [fabric, setFabric] = useState(fabrics[0]);
-  const [size, setSize] = useState(SIZES[0]);
-  const [customSize, setCustomSize] = useState('');
-  const [color, setColor] = useState(COLORS[0]);
-  const [style, setStyle] = useState(STYLES[0]);
-  
-  const { addToCart } = useCart();
-
-  const handleAddToCart = () => {
-    const finalSize = size === 'حجم مخصص' ? customSize : size;
-    addToCart(product, quantity, { fabric, size: finalSize, color, style });
-  };
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8 md:py-12">
@@ -53,73 +34,12 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           </h1>
           <p className="mt-4 text-muted-foreground text-lg">{product.description}</p>
           
-          <p className="mt-6 text-lg text-primary">لطلب هذا المنتج، يرجى تخصيصه وإضافته إلى السلة.</p>
-
           <Separator className="my-8" />
 
-          <div className="space-y-6">
-            <h2 className="text-xl font-headline font-semibold">تخصيص الستارة</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Fabric */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">القماش</label>
-                <Select value={fabric} onValueChange={setFabric}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {fabrics.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              {/* Size */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">المقاس</label>
-                <Select value={size} onValueChange={setSize}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {SIZES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              {size === 'حجم مخصص' && (
-                <div className="space-y-2 sm:col-span-2">
-                  <label htmlFor="custom-size" className="text-sm font-medium">أدخل المقاس المخصص (مثال: 220x280 سم)</label>
-                  <Input 
-                    id="custom-size"
-                    value={customSize}
-                    onChange={(e) => setCustomSize(e.target.value)}
-                    placeholder="العرض x الارتفاع"
-                  />
-                </div>
-              )}
-              {/* Color */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">اللون</label>
-                <Select value={color} onValueChange={setColor}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {COLORS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              {/* Style */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">الستايل</label>
-                <Select value={style} onValueChange={setStyle}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {STYLES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-8 flex items-center gap-4">
-            <Button size="lg" onClick={handleAddToCart} className="flex-1 font-bold" disabled={size === 'حجم مخصص' && !customSize}>
-              <ShoppingCart className="ms-2 h-5 w-5" />
-              إضافة إلى السلة
-            </Button>
-          </div>
+          <p className="text-lg text-foreground">
+            استعرض جمال التفاصيل والتصميم الفريد لهذا المنتج. للمزيد من المعلومات أو لطلبات خاصة، يرجى <a href="/contact" className="text-primary hover:underline font-semibold">التواصل معنا</a>.
+          </p>
+
         </div>
       </div>
     </div>
