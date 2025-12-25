@@ -53,7 +53,7 @@ const virtualCurtainMockupFlow = ai.defineFlow(
         {media: {url: input.curtainImage}},
         {text: `You are a virtual interior designer. Your task is to superimpose the curtains from the second image onto the window in the first image (the room).
         Generate a photorealistic image showing how the curtains would look in that room. The final image should only show the room with the new curtains.
-        Pay close attention to the style, color, pattern, and material of the curtains in the reference image.
+        Pay close attention to the style, color, pattern, and material of the curtains in the curtain image.
         Match the lighting, shadows, and perspective of the room to create a seamless and believable composition.
         YOU MUST ONLY OUTPUT THE IMAGE, DO NOT ADD ANY TEXT.`},
       ],
