@@ -5,6 +5,9 @@ export type Product = {
   imageId: string;
   image: string;
   imageHint: string;
+  fabricDetails: string;
+  features: string[];
+  careInstructions: string;
 };
 
 export type CartItem = {
