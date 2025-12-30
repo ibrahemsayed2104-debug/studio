@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, ShoppingCart, GalleryVertical, Home, Smartphone, Wand2, ChevronDown, Package, Phone, MapPin, ShieldCheck, User, Truck } from 'lucide-react';
+import { Menu, ShoppingCart, GalleryVertical, Home, Wand2, ChevronDown, Package, Phone, MapPin, ShieldCheck, User, Truck } from 'lucide-react';
 import { useState } from 'react';
 
 import { cn } from '@/lib/utils';
@@ -23,7 +23,6 @@ import {
 const navLinks = [
   { href: '/', label: 'الرئيسية', icon: Home },
   { href: '/gallery', label: 'المعرض', icon: GalleryVertical },
-  { href: '/virtual-mockup', label: 'جرّبها في منزلك', icon: Smartphone },
   { href: '/design-assistant', label: 'مساعد التصميم', icon: Wand2 },
 ];
 

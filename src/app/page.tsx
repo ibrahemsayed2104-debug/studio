@@ -36,7 +36,7 @@ export default function Home() {
               <Link href="/gallery">تصفح المعرض</Link>
             </Button>
             <Button asChild size="lg" variant="secondary">
-              <Link href="/virtual-mockup">جرّبها في منزلك</Link>
+              <Link href="/design-assistant">استشر المصمم الذكي</Link>
             </Button>
           </div>
         </div>

@@ -33,7 +33,7 @@ export function Footer() {
             <h3 className="font-headline font-semibold tracking-wider uppercase">روابط سريعة</h3>
             <ul className="mt-4 space-y-2">
               <li><Link href="/" className="text-sm hover:text-primary transition-colors">الرئيسية</Link></li>
-              <li><Link href="/virtual-mockup" className="text-sm hover:text-primary transition-colors">جرّبها في منزلك</Link></li>
+              <li><Link href="/design-assistant" className="text-sm hover:text-primary transition-colors">مساعد التصميم</Link></li>
               <li><Link href="/orders" className="text-sm hover:text-primary transition-colors">تتبع طلبك</Link></li>
               <li><Link href="/admin" className="text-sm hover:text-primary transition-colors">إدارة الطلبات</Link></li>
               <li><Link href="/contact" className="text-sm hover:text-primary transition-colors">تواصل معنا</Link></li>
