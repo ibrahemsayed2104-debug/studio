@@ -37,6 +37,10 @@ export function Header() {
   const { itemCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const handleMobileLinkClick = () => {
+    setMobileMenuOpen(false);
+  };
+
   const allMobileLinks = [
       ...navLinks,
       ...customerLinks,
@@ -141,7 +145,7 @@ export function Header() {
               <SheetContent side="right">
                  <SheetTitle className="sr-only">Main Menu</SheetTitle>
                 <div className="flex flex-col gap-6 pt-10">
-                  <Link href="/" className="flex items-center space-x-2 rtl:space-x-reverse" onClick={() => setMobileMenuOpen(false)}>
+                  <Link href="/" className="flex items-center space-x-2 rtl:space-x-reverse" onClick={handleMobileLinkClick}>
                     <CurtainIcon className="h-6 w-6 text-primary" />
                     <span className="font-bold font-headline text-2xl">{siteConfig.name}</span>
                   </Link>
@@ -151,7 +155,7 @@ export function Header() {
                       href={link.href}
                       target={link.external ? '_blank' : undefined}
                       rel={link.external ? 'noopener noreferrer' : undefined}
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={handleMobileLinkClick}
                       className={cn(
                         'text-lg transition-colors hover:text-foreground/80 flex items-center gap-3',
                         (pathname === link.href || (link.admin && pathname.startsWith('/admin'))) ? 'text-primary font-semibold' : 'text-foreground/60'
