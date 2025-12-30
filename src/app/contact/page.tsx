@@ -265,7 +265,7 @@ export default function ContactPage() {
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="اختر محافظتك" />
-                              </Trigger>
+                              </SelectTrigger>
                             </FormControl>
                             <SelectContent>
                               {EGYPT_GOVERNORATES.map(g => <SelectItem key={g.governorate} value={g.governorate}>{g.governorate}</SelectItem>)}
