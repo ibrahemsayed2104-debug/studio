@@ -7,8 +7,6 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '50mb',
     },
-    // Required for the middleware to work correctly.
-    instrumentationHook: true,
   },
   typescript: {
     ignoreBuildErrors: true,
