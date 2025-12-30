@@ -10,7 +10,7 @@ import { useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, AlertCircle, ShoppingBag, Truck, CheckCircle, PackageOpen, MessagesSquare, Users, PlusCircle, Trash2 } from 'lucide-react';
+import { Loader2, AlertCircle, ShoppingBag, Truck, CheckCircle, PackageOpen, MessagesSquare, Users, PlusCircle, Trash2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -78,7 +78,7 @@ const orderItemSchema = z.object({
 
 const newOrderSchema = z.object({
   customerName: z.string().min(2, "الاسم مطلوب."),
-  customerPhone: z.string().min(10, "رقم الهاتف مطلوب."),
+  customerPhone: z.string().refine(val => /^(01|05)\d{8,9}$/.test(val), { message: "رقم هاتف غير صالح." }),
   customerAddress: z.string().min(10, "العنوان مطلوب."),
   status: z.string().min(1, "الحالة مطلوبة."),
   items: z.array(orderItemSchema).min(1, "يجب إضافة منتج واحد على الأقل."),
@@ -99,6 +99,7 @@ export default function DashboardPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
   const [isAddOrderOpen, setIsAddOrderOpen] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
   
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -251,12 +252,27 @@ export default function DashboardPage() {
         });
         setIsAddOrderOpen(false);
         form.reset();
+        setCurrentStep(1);
     } catch (err) {
         console.error("Error creating manual order:", err);
         toast({
             variant: 'destructive',
             title: 'خطأ في إنشاء الطلب',
             description: 'لم نتمكن من إنشاء الطلب. الرجاء المحاولة مرة أخرى.',
+        });
+    }
+  };
+
+  const handleNextStep = async () => {
+    const isItemsValid = await form.trigger("items");
+    const isStatusValid = await form.trigger("status");
+    if (isItemsValid && isStatusValid) {
+        setCurrentStep(2);
+    } else {
+        toast({
+            variant: "destructive",
+            title: "خطأ في الإدخال",
+            description: "الرجاء التأكد من تعبئة جميع تفاصيل المنتجات بشكل صحيح.",
         });
     }
   };
@@ -351,7 +367,7 @@ export default function DashboardPage() {
             </TabsTrigger>
         </TabsList>
         <TabsContent value="orders" className="mt-6">
-            <Dialog open={isAddOrderOpen} onOpenChange={setIsAddOrderOpen}>
+            <Dialog open={isAddOrderOpen} onOpenChange={(isOpen) => { setIsAddOrderOpen(isOpen); if (!isOpen) { form.reset(); setCurrentStep(1); } }}>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
                         <div>
@@ -385,7 +401,7 @@ export default function DashboardPage() {
                                         {orders.map(order => (
                                             <DialogTrigger key={order.id} asChild>
                                                 <TableRow onClick={() => setSelectedOrder(order)} className="cursor-pointer">
-                                                    <TableCell className="font-medium">#{order.id.slice(-6)}</TableCell>
+                                                    <TableCell className="font-medium">#{order.id}</TableCell>
                                                     <TableCell>{order.customer.name}</TableCell>
                                                     <TableCell>{new Date(order.createdAt.seconds * 1000).toLocaleDateString('ar-EG')}</TableCell>
                                                     <TableCell>
@@ -492,7 +508,7 @@ export default function DashboardPage() {
             <DialogHeader>
                 <DialogTitle className="text-2xl font-headline flex items-center gap-4">
                     تفاصيل الطلب 
-                    <span className="font-mono text-base bg-muted px-2 py-1 rounded">#{selectedOrder.id.slice(-6)}</span>
+                    <span className="font-mono text-base bg-muted px-2 py-1 rounded">#{selectedOrder.id}</span>
                 </DialogTitle>
                     <DialogDescription>
                     تم إنشاء الطلب في: {new Date(selectedOrder.createdAt.seconds * 1000).toLocaleString('ar-EG')}
@@ -535,129 +551,155 @@ export default function DashboardPage() {
             </DialogContent>
         )}
 
-      <Dialog open={isAddOrderOpen} onOpenChange={setIsAddOrderOpen}>
+      <Dialog open={isAddOrderOpen} onOpenChange={(isOpen) => { setIsAddOrderOpen(isOpen); if (!isOpen) { form.reset(); setCurrentStep(1); } }}>
         <DialogContent className="sm:max-w-4xl" onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>إضافة طلب جديد يدويًا</DialogTitle>
-            <DialogDescription>
-              أدخل تفاصيل الطلب الجديد هنا. سيتم حفظه في قاعدة البيانات.
+             <DialogDescription>
+                الخطوة {currentStep} من 2: {currentStep === 1 ? 'تفاصيل المنتجات' : 'بيانات العميل'}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleCreateOrder)} className="space-y-6">
-                <ScrollArea className="max-h-[60vh] p-4">
-                  <div className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>معلومات العميل</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <FormField control={form.control} name="customerName" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>اسم العميل</FormLabel>
-                                        <FormControl><Input {...field} placeholder="الاسم الكامل للعميل" /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )} />
-                                <FormField control={form.control} name="customerPhone" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>رقم هاتف العميل</FormLabel>
-                                        <FormControl><Input {...field} placeholder="01xxxxxxxxx" /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )} />
-                            </div>
-                            <FormField control={form.control} name="customerAddress" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>عنوان العميل</FormLabel>
-                                    <FormControl><Input {...field} placeholder="العنوان الكامل بالتفصيل" /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
-                        </CardContent>
-                    </Card>
+                <ScrollArea className="h-[60vh] p-4 border-b">
+                  
+                  {currentStep === 1 && (
+                    <div className="space-y-6 animate-in fade-in-50">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>المنتجات المطلوبة</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {fields.map((field, index) => (
+                                <div key={field.id} className="p-4 border rounded-lg space-y-4 relative bg-muted/30">
+                                    <h4 className="font-semibold">المنتج #{index + 1}</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <FormField control={form.control} name={`items.${index}.productId`} render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>المنتج</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <FormControl><SelectTrigger><SelectValue placeholder="اختر منتجًا" /></SelectTrigger></FormControl>
+                                                    <SelectContent><ScrollArea className="h-48">{PRODUCTS.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</ScrollArea></SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )} />
+                                    <FormField control={form.control} name={`items.${index}.quantity`} render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>الكمية</FormLabel>
+                                                <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 1)} /></FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )} />
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <FormField control={form.control} name={`items.${index}.fabric`} render={({ field }) => (
+                                            <FormItem><FormLabel>القماش</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="اختر قماش"/></SelectTrigger></FormControl><SelectContent><ScrollArea className="h-48">{fabrics.map(f => <SelectItem value={f} key={f}>{f}</SelectItem>)}</ScrollArea></SelectContent></Select><FormMessage /></FormItem>
+                                        )}/>
+                                        <FormField control={form.control} name={`items.${index}.size`} render={({ field }) => (
+                                            <FormItem><FormLabel>المقاس</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="اختر مقاس"/></SelectTrigger></FormControl><SelectContent>{SIZES.map(s => <SelectItem value={s} key={s}>{s}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
+                                        )}/>
+                                        <FormField control={form.control} name={`items.${index}.color`} render={({ field }) => (
+                                            <FormItem><FormLabel>اللون</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="اختر لون"/></SelectTrigger></FormControl><SelectContent><ScrollArea className="h-48">{COLORS.map(c => <SelectItem value={c} key={c}>{c}</SelectItem>)}</ScrollArea></SelectContent></Select><FormMessage /></FormItem>
+                                        )}/>
+                                        <FormField control={form.control} name={`items.${index}.style`} render={({ field }) => (
+                                            <FormItem><FormLabel>الستايل</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="اختر ستايل"/></SelectTrigger></FormControl><SelectContent>{STYLES.map(s => <SelectItem value={s} key={s}>{s}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
+                                        )}/>
+                                    </div>
+                                    {fields.length > 1 && (
+                                        <Button type="button" variant="destructive" size="icon" className="absolute top-2 left-2 h-7 w-7" onClick={() => remove(index)}>
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    )}
+                                </div>
+                                ))}
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => append({ productId: '', quantity: 1, fabric: '', size: '', color: '', style: '' })}
+                                >
+                                    إضافة منتج آخر
+                                </Button>
+                            </CardContent>
+                        </Card>
+                        <FormField control={form.control} name="status" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>حالة الطلب</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder="اختر حالة" /></SelectTrigger></FormControl>
+                                    <SelectContent>
+                                        {ORDER_STATUSES.map(status => (
+                                            <SelectItem key={status} value={status}>{status}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    </div>
+                  )}
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>المنتجات المطلوبة</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {fields.map((field, index) => (
-                              <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
-                                <h4 className="font-semibold">المنتج #{index + 1}</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormField control={form.control} name={`items.${index}.productId`} render={({ field }) => (
+                  {currentStep === 2 && (
+                    <div className="space-y-6 animate-in fade-in-50">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>معلومات العميل</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormField control={form.control} name="customerName" render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>المنتج</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl><SelectTrigger><SelectValue placeholder="اختر منتجًا" /></SelectTrigger></FormControl>
-                                                <SelectContent><ScrollArea className="h-48">{PRODUCTS.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</ScrollArea></SelectContent>
-                                            </Select>
+                                            <FormLabel>اسم العميل</FormLabel>
+                                            <FormControl><Input {...field} placeholder="الاسم الكامل للعميل" /></FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )} />
-                                <FormField control={form.control} name={`items.${index}.quantity`} render={({ field }) => (
+                                    <FormField control={form.control} name="customerPhone" render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>الكمية</FormLabel>
-                                            <FormControl><Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 1)} /></FormControl>
+                                            <FormLabel>رقم هاتف العميل</FormLabel>
+                                            <FormControl><Input {...field} placeholder="01xxxxxxxxx أو 05xxxxxxxx" /></FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )} />
                                 </div>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <FormField control={form.control} name={`items.${index}.fabric`} render={({ field }) => (
-                                        <FormItem><FormLabel>القماش</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><ScrollArea className="h-48">{fabrics.map(f => <SelectItem value={f} key={f}>{f}</SelectItem>)}</ScrollArea></SelectContent></Select><FormMessage /></FormItem>
-                                    )}/>
-                                    <FormField control={form.control} name={`items.${index}.size`} render={({ field }) => (
-                                        <FormItem><FormLabel>المقاس</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent>{SIZES.map(s => <SelectItem value={s} key={s}>{s}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
-                                    )}/>
-                                    <FormField control={form.control} name={`items.${index}.color`} render={({ field }) => (
-                                        <FormItem><FormLabel>اللون</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><ScrollArea className="h-48">{COLORS.map(c => <SelectItem value={c} key={c}>{c}</SelectItem>)}</ScrollArea></SelectContent></Select><FormMessage /></FormItem>
-                                    )}/>
-                                    <FormField control={form.control} name={`items.${index}.style`} render={({ field }) => (
-                                        <FormItem><FormLabel>الستايل</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent>{STYLES.map(s => <SelectItem value={s} key={s}>{s}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
-                                    )}/>
-                                </div>
-                                {fields.length > 1 && (
-                                    <Button type="button" variant="destructive" size="icon" className="absolute top-2 left-2 h-7 w-7" onClick={() => remove(index)}>
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                )}
-                              </div>
-                            ))}
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => append({ productId: '', quantity: 1, fabric: '', size: '', color: '', style: '' })}
-                            >
-                                إضافة منتج آخر
-                            </Button>
-                        </CardContent>
-                    </Card>
-                    <FormField control={form.control} name="status" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>حالة الطلب</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="اختر حالة" /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    {ORDER_STATUSES.map(status => (
-                                        <SelectItem key={status} value={status}>{status}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                  </div>
+                                <FormField control={form.control} name="customerAddress" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>عنوان العميل</FormLabel>
+                                        <FormControl><Input {...field} placeholder="العنوان الكامل بالتفصيل" /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                            </CardContent>
+                        </Card>
+                    </div>
+                  )}
+
                 </ScrollArea>
-                <DialogFooter className="pt-6 border-t">
-                  <Button type="button" variant="ghost" onClick={() => setIsAddOrderOpen(false)}>إلغاء</Button>
-                  <Button type="submit" disabled={form.formState.isSubmitting}>
-                      {form.formState.isSubmitting && <Loader2 className="ms-2 h-4 w-4 animate-spin" />}
-                      إنشاء الطلب
-                  </Button>
+                <DialogFooter className="pt-4 flex justify-between w-full">
+                    <div>
+                        {currentStep === 2 && (
+                             <Button type="button" variant="outline" onClick={() => setCurrentStep(1)}>
+                                <ArrowRight className="ms-2 h-4 w-4" />
+                                السابق
+                            </Button>
+                        )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button type="button" variant="ghost" onClick={() => setIsAddOrderOpen(false)}>إلغاء</Button>
+                      {currentStep === 1 && (
+                         <Button type="button" onClick={handleNextStep}>
+                             التالي
+                             <ArrowLeft className="me-2 h-4 w-4" />
+                         </Button>
+                       )}
+                      {currentStep === 2 && (
+                        <Button type="submit" disabled={form.formState.isSubmitting}>
+                            {form.formState.isSubmitting && <Loader2 className="ms-2 h-4 w-4 animate-spin" />}
+                            إنشاء الطلب
+                        </Button>
+                      )}
+                    </div>
                 </DialogFooter>
             </form>
           </Form>
