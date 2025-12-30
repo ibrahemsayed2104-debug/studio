@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState } from 'react';
@@ -22,52 +20,42 @@ export default function GalleryPage() {
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
 
   const renderGridItem = (item: GalleryItem) => {
-    if (item.type === 'video') {
-      return (
+    return (
         <button
           key={item.id}
           onClick={() => setSelectedItem(item)}
-          className="relative w-full rounded-lg overflow-hidden shadow-lg group border transition-all duration-300 hover:shadow-2xl hover:scale-105 block cursor-pointer bg-black"
-          style={{ aspectRatio: item.aspectRatio || '16/9' }}
+          className="group relative block w-full overflow-hidden rounded-lg border bg-muted shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105"
         >
-          <video
-            src={item.url}
-            className="object-cover w-full h-full"
-            muted
-            loop
-            playsInline
-            onMouseOver={e => e.currentTarget.play()}
-            onMouseOut={e => e.currentTarget.pause()}
-          />
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-100 group-hover:opacity-0 transition-opacity">
-            <Video className="h-12 w-12 text-white" />
-          </div>
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-             <Video className="h-12 w-12 text-white" />
-          </div>
+            <div
+                className="w-full h-full"
+                style={{ aspectRatio: item.aspectRatio || '1' }}
+            >
+                {item.type === 'video' ? (
+                    <video
+                        src={item.url}
+                        className="h-full w-full object-cover"
+                        playsInline
+                        muted
+                        loop
+                        autoPlay
+                    />
+                ) : (
+                    <Image
+                        src={item.url}
+                        alt={`${item.hint} design ${item.id}`}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        data-ai-hint={item.hint}
+                    />
+                )}
+            </div>
+            <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                {item.type === 'video' && <Video className="h-12 w-12 text-white" />}
+            </div>
         </button>
-      );
-    }
-
-    return (
-       <button
-        key={item.id}
-        onClick={() => setSelectedItem(item)}
-        className="relative w-full h-auto rounded-lg overflow-hidden shadow-lg group border transition-all duration-300 hover:shadow-2xl hover:scale-105 block cursor-pointer"
-        style={{ aspectRatio: item.aspectRatio || 'auto' }}
-      >
-        <Image
-            src={item.url}
-            alt={`${item.hint} design ${item.id}`}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            data-ai-hint={item.hint}
-        />
-        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-      </button>
     );
-  };
+};
 
 
   return (
