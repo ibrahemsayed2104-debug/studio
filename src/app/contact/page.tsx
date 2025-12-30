@@ -10,11 +10,15 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Send, MapPin, Navigation } from "lucide-react";
+import { Send, MapPin, Navigation, Loader2 } from "lucide-react";
 import { siteConfig } from "@/lib/config";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SAUDI_CITIES, EGYPT_GOVERNORATES, COUNTRIES } from "@/lib/data";
 import { Separator } from "@/components/ui/separator";
+import { useFirestore } from "@/firebase";
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const formSchema = z.object({
   name: z.string().min(2, "الاسم يجب أن يكون حرفين على الأقل."),
@@ -30,6 +34,9 @@ const formSchema = z.object({
 
 export default function ContactPage() {
   const { toast } = useToast();
+  const firestore = useFirestore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -75,7 +82,10 @@ export default function ContactPage() {
   }, [selectedCountry, form]);
 
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true);
+    const requestId = `contact_${Date.now()}`;
+
     let fullAddress = `${values.address}, عمارة ${values.buildingNumber}, الدور ${values.floorNumber}, شقة ${values.apartmentNumber}\n`;
     if(values.city) fullAddress += `${values.city}`;
     if (values.country === 'مصر' && values.governorate) {
@@ -83,16 +93,51 @@ export default function ContactPage() {
     }
     fullAddress += `, ${values.country}`;
 
-    const message = `\u200fطلب جديد:\n\nالاسم: ${values.name}\nرقم الهاتف: ${values.phone}\nالعنوان: ${fullAddress}`;
-    const whatsappUrl = `https://wa.me/${siteConfig.contact.phone}?text=${encodeURIComponent(message)}`;
+    const message = `\u200f*طلب تواصل جديد*\n*الرقم المرجعي:* ${requestId}\n\nالاسم: ${values.name}\nرقم الهاتف: ${values.phone}\nالعنوان: ${fullAddress}`;
     
-    window.open(whatsappUrl, '_blank');
+    const contactData = {
+      id: requestId,
+      customer: {
+        name: values.name,
+        phone: values.phone,
+        address: fullAddress,
+      },
+      createdAt: serverTimestamp(),
+      status: 'جديد'
+    };
 
-    toast({
-      title: "جاهز للإرسال عبر واتساب!",
-      description: "سيتم فتح واتساب لإرسال رسالتك.",
-    });
-    form.reset();
+    try {
+      const whatsappUrl = `https://wa.me/${siteConfig.contact.phone}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+      
+      toast({
+        title: "تم استلام طلبك بنجاح!",
+        description: `الرقم المرجعي لطلبك هو: ${requestId}`,
+      });
+
+      if (firestore) {
+        const contactRef = doc(firestore, 'contact_form_entries', requestId);
+        setDoc(contactRef, contactData).catch(async (serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: contactRef.path,
+            operation: 'create',
+            requestResourceData: contactData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+          console.error("Firestore permission error during contact submission, logged.", permissionError);
+        });
+      }
+      form.reset();
+    } catch (error) {
+       console.error("Error processing contact request: ", error);
+       toast({
+         variant: "destructive",
+         title: "حدث خطأ",
+         description: "لم نتمكن من معالجة طلبك. الرجاء المحاولة مرة أخرى.",
+       });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -109,8 +154,8 @@ export default function ContactPage() {
       <div className="space-y-12">
         <Card>
           <CardHeader>
-            <CardTitle>أرسل لنا رسالة</CardTitle>
-            <CardDescription>املأ النموذج أدناه وسنعاود الاتصال بك.</CardDescription>
+            <CardTitle>أرسل لنا طلب تواصل</CardTitle>
+            <CardDescription>املأ النموذج أدناه وسنعاود الاتصال بك في أقرب وقت.</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -261,9 +306,9 @@ export default function ContactPage() {
                     )}
                   />
                 </div>
-                <Button type="submit" className="w-full font-bold" size="lg">
-                  <Send className="ms-2 h-4 w-4" />
-                  إرسال الطلب عبر واتساب
+                <Button type="submit" className="w-full font-bold" size="lg" disabled={isSubmitting}>
+                  {isSubmitting ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : <Send className="ms-2 h-4 w-4" />}
+                  {isSubmitting ? 'جاري الإرسال...' : 'إرسال الطلب عبر واتساب'}
                 </Button>
               </form>
             </Form>
@@ -297,3 +342,5 @@ export default function ContactPage() {
     </div>
   );
 }
+
+    
