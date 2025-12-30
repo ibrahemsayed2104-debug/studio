@@ -47,7 +47,7 @@ interface OrderData extends DocumentData {
   createdAt: {
     seconds: number;
     nanoseconds: number;
-  };
+  } | null;
 }
 
 interface ContactRequestData extends DocumentData {
@@ -60,7 +60,7 @@ interface ContactRequestData extends DocumentData {
   createdAt: {
     seconds: number;
     nanoseconds: number;
-  };
+  } | null;
   status: string;
 }
 
@@ -403,7 +403,7 @@ export default function DashboardPage() {
                                                 <TableRow onClick={() => setSelectedOrder(order)} className="cursor-pointer">
                                                     <TableCell className="font-medium">#{order.id}</TableCell>
                                                     <TableCell>{order.customer.name}</TableCell>
-                                                    <TableCell>{new Date(order.createdAt.seconds * 1000).toLocaleDateString('ar-EG')}</TableCell>
+                                                    <TableCell>{order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('ar-EG') : 'الآن'}</TableCell>
                                                     <TableCell>
                                                         <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
                                                     </TableCell>
@@ -466,7 +466,7 @@ export default function DashboardPage() {
                                         <TableRow key={request.id}>
                                             <TableCell className="font-medium">{request.id}</TableCell>
                                             <TableCell>{request.customer.name}</TableCell>
-                                            <TableCell>{new Date(request.createdAt.seconds * 1000).toLocaleDateString('ar-EG')}</TableCell>
+                                            <TableCell>{request.createdAt ? new Date(request.createdAt.seconds * 1000).toLocaleDateString('ar-EG') : 'الآن'}</TableCell>
                                             <TableCell>
                                                 <Badge variant={getStatusVariant(request.status)}>{request.status}</Badge>
                                             </TableCell>
@@ -511,7 +511,7 @@ export default function DashboardPage() {
                     <span className="font-mono text-base bg-muted px-2 py-1 rounded">#{selectedOrder.id}</span>
                 </DialogTitle>
                     <DialogDescription>
-                    تم إنشاء الطلب في: {new Date(selectedOrder.createdAt.seconds * 1000).toLocaleString('ar-EG')}
+                    {selectedOrder.createdAt ? `تم إنشاء الطلب في: ${new Date(selectedOrder.createdAt.seconds * 1000).toLocaleString('ar-EG')}` : 'جاري إنشاء الطلب...'}
                 </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-6">
