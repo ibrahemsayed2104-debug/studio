@@ -19,7 +19,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 // It's recommended to move this to a .env.local file
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'change-me-12345';
+const ADMIN_PASSWORD = 'change-me-12345';
 
 interface AdminLoginPageProps {
   onLoginSuccess: () => void;
