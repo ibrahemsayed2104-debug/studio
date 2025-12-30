@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -59,6 +60,15 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
+    if (!orderId) {
+      toast({
+        variant: "destructive",
+        title: "يرجى الانتظار",
+        description: "لا يزال رقم الطلب قيد الإنشاء. حاول مرة أخرى بعد لحظات قليلة.",
+      });
+      return;
+    }
+
     if (selectedCountry && cities.length > 0 && !selectedCity) {
         toast({
             variant: "destructive",
@@ -321,7 +331,7 @@ export default function CheckoutPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" size="lg" className="w-full font-bold">
+              <Button type="submit" size="lg" className="w-full font-bold" disabled={!orderId}>
                 تأكيد الطلب وإرسال عبر واتساب
               </Button>
             </CardFooter>
@@ -331,3 +341,5 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+    
