@@ -74,8 +74,9 @@ export default function TrackOrderPage() {
     setItemType(null);
 
     try {
+      const trimmedId = searchId.trim();
       // 1. Try searching in 'orders' collection
-      const orderRef = doc(firestore, 'orders', searchId.trim());
+      const orderRef = doc(firestore, 'orders', trimmedId);
       const orderSnap = await getDoc(orderRef);
 
       if (orderSnap.exists()) {
@@ -84,7 +85,7 @@ export default function TrackOrderPage() {
         setItemType('order');
       } else {
         // 2. If not found, try searching in 'contact_form_entries'
-        const contactRef = doc(firestore, 'contact_form_entries', searchId.trim());
+        const contactRef = doc(firestore, 'contact_form_entries', trimmedId);
         const contactSnap = await getDoc(contactRef);
         
         if (contactSnap.exists()) {
@@ -252,3 +253,5 @@ export default function TrackOrderPage() {
     </div>
   );
 }
+
+    

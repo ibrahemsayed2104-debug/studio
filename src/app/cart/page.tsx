@@ -11,15 +11,13 @@ import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingCart, Wallet, AlertCircle } from 'lucide-react';
+import { ShoppingCart, Wallet, AlertCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { siteConfig } from '@/lib/config';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SAUDI_CITIES, EGYPT_GOVERNORATES, COUNTRIES } from '@/lib/data';
 import { useFirestore } from '@/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function CheckoutPage() {
@@ -27,18 +25,13 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { toast } = useToast();
   const firestore = useFirestore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [orderId, setOrderId] = useState('');
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
   const [selectedGovernorate, setSelectedGovernorate] = useState(EGYPT_GOVERNORATES[0].governorate);
   const [cities, setCities] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState('');
   
-  useEffect(() => {
-    // Generate orderId only on the client side to avoid hydration mismatch
-    setOrderId(Date.now().toString());
-  }, []);
-
   useEffect(() => {
     if (selectedCountry === 'مصر') {
         const governorateData = EGYPT_GOVERNORATES.find(g => g.governorate === selectedGovernorate);
@@ -59,15 +52,7 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    if (!orderId) {
-      toast({
-        variant: "destructive",
-        title: "يرجى الانتظار",
-        description: "لا يزال رقم الطلب قيد الإنشاء. حاول مرة أخرى بعد لحظات قليلة.",
-      });
-      return;
-    }
+    setIsSubmitting(true);
 
     if (selectedCountry && cities.length > 0 && !selectedCity) {
         toast({
@@ -75,18 +60,12 @@ export default function CheckoutPage() {
             title: "خطأ في الإدخال",
             description: "الرجاء اختيار مدينة.",
         });
+        setIsSubmitting(false);
         return;
     }
 
     const formData = new FormData(e.currentTarget);
     const customerData = Object.fromEntries(formData.entries());
-
-    // Construct WhatsApp message with RTL mark
-    let message = `\u200f*طلب جديد من ${siteConfig.name}*\n`;
-    message += `*رقم الطلب:* ${orderId}\n\n`;
-    message += `*معلومات العميل:*\n`;
-    message += `الاسم: ${customerData.name}\n`;
-    message += `رقم الهاتف: ${customerData.phone}\n`;
     
     let fullAddress = `${customerData.address}, عمارة ${customerData['building-number']}, الدور ${customerData['floor-number']}, شقة ${customerData['apartment-number']}\n`;
     if(customerData.city) fullAddress += `${customerData.city}`;
@@ -98,21 +77,6 @@ export default function CheckoutPage() {
     if (customerData['postal-code']) {
       fullAddress += `, الرمز البريدي: ${customerData['postal-code']}`;
     }
-
-    message += `العنوان: ${fullAddress}\n\n`;
-    
-    message += `*المنتجات المطلوبة:*\n`;
-    cartItems.forEach(item => {
-      message += `--------------------\n`;
-      message += `المنتج: ${item.product.name}\n`;
-      message += `الكمية: ${item.quantity}\n`;
-      message += `التخصيص: ${item.customization.fabric}, ${item.customization.size}, ${item.customization.color}, ${item.customization.style}\n`;
-    });
-    message += `--------------------\n`;
-    message += `*إجمالي عدد المنتجات:* ${itemCount}\n\n`;
-    message += `*ملحوظة هامة:*\n`;
-    message += `لإتمام الطلب، سيتم دفع 75% من قيمة الطلب مقدمًا. سيتم التواصل معكم للتنسيق.\n\n`;
-    message += `*طريقة الدفع:* الدفع عند الاستلام (الجزء المتبقي)`;
 
     const orderData = {
       customer: {
@@ -132,33 +96,41 @@ export default function CheckoutPage() {
     };
 
     try {
-      // Step 1: Immediately open WhatsApp. This is crucial to avoid popup blockers.
+      if (!firestore) {
+        throw new Error("Firestore is not initialized");
+      }
+      
+      const docRef = await addDoc(collection(firestore, 'orders'), orderData);
+      const orderId = docRef.id;
+
+      let message = `\u200f*طلب جديد من ${siteConfig.name}*\n`;
+      message += `*رقم الطلب:* ${orderId}\n\n`;
+      message += `*معلومات العميل:*\n`;
+      message += `الاسم: ${customerData.name}\n`;
+      message += `رقم الهاتف: ${customerData.phone}\n`;
+      message += `العنوان: ${fullAddress}\n\n`;
+      
+      message += `*المنتجات المطلوبة:*\n`;
+      cartItems.forEach(item => {
+        message += `--------------------\n`;
+        message += `المنتج: ${item.product.name}\n`;
+        message += `الكمية: ${item.quantity}\n`;
+        message += `التخصيص: ${item.customization.fabric}, ${item.customization.size}, ${item.customization.color}, ${item.customization.style}\n`;
+      });
+      message += `--------------------\n`;
+      message += `*إجمالي عدد المنتجات:* ${itemCount}\n\n`;
+      message += `*ملحوظة هامة:*\n`;
+      message += `لإتمام الطلب، سيتم دفع 75% من قيمة الطلب مقدمًا. سيتم التواصل معكم للتنسيق.\n\n`;
+      message += `*طريقة الدفع:* الدفع عند الاستلام (الجزء المتبقي)`;
+      
       const whatsappUrl = `https://wa.me/${siteConfig.contact.phone}?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank');
       
       toast({
         title: "تم توجيهك إلى واتساب!",
-        description: "أرسل الرسالة لتأكيد طلبك.",
+        description: "أرسل الرسالة لتأكيد طلبك. تم حفظ طلبك برقم: " + orderId,
       });
 
-      // Step 2: Save the order to Firestore in the background.
-      if (!firestore) {
-        throw new Error("Firestore is not initialized");
-      }
-      const orderRef = doc(firestore, 'orders', orderId.trim());
-      setDoc(orderRef, orderData)
-        .catch(async (serverError) => {
-          const permissionError = new FirestorePermissionError({
-            path: orderRef.path,
-            operation: 'create',
-            requestResourceData: orderData,
-          });
-          errorEmitter.emit('permission-error', permissionError);
-          // We don't re-throw here, allow the UI to proceed
-          console.error("Firestore permission error ignored for UI purposes, but logged.", permissionError);
-        });
-
-      // Step 3: Clear the cart and redirect.
       clearCart();
       router.push(`/order-success?orderId=${orderId}`);
 
@@ -167,8 +139,10 @@ export default function CheckoutPage() {
       toast({
         variant: "destructive",
         title: "حدث خطأ",
-        description: "لم نتمكن من معالجة طلبك بشكل كامل. الرجاء المحاولة مرة أخرى.",
+        description: "لم نتمكن من معالجة طلبك. الرجاء المحاولة مرة أخرى.",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -331,7 +305,8 @@ export default function CheckoutPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" size="lg" className="w-full font-bold" disabled={!orderId}>
+              <Button type="submit" size="lg" className="w-full font-bold" disabled={isSubmitting}>
+                 {isSubmitting ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : null}
                 تأكيد الطلب وإرسال عبر واتساب
               </Button>
             </CardFooter>
