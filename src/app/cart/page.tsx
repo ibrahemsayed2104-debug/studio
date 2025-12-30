@@ -36,7 +36,7 @@ export default function CheckoutPage() {
   
   useEffect(() => {
     // Generate orderId only on the client side to avoid hydration mismatch
-    setOrderId(`order_${Date.now()}`);
+    setOrderId(Date.now().toString());
   }, []);
 
   useEffect(() => {

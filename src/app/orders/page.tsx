@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -145,7 +146,7 @@ export default function TrackOrderPage() {
       {!isLoading && !error && searchedOrder && (
         <Card>
             <CardHeader>
-              <CardTitle>تفاصيل الطلب #{searchedOrder.id.slice(-6)}</CardTitle>
+              <CardTitle>تفاصيل الطلب #{searchedOrder.id}</CardTitle>
               <div className="flex justify-between items-center pt-2">
                 <CardDescription>
                   تاريخ الطلب: {new Date(searchedOrder.createdAt.seconds * 1000).toLocaleDateString('ar-EG')}
@@ -184,3 +185,5 @@ export default function TrackOrderPage() {
     </div>
   );
 }
+
+    

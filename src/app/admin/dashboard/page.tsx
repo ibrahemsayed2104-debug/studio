@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -92,7 +93,7 @@ export default function DashboardPage() {
       await updateDoc(orderRef, { status: newStatus });
       toast({
         title: 'تم تحديث الحالة',
-        description: `تم تحديث حالة الطلب #${orderId.slice(-6)} إلى "${newStatus}".`,
+        description: `تم تحديث حالة الطلب #${orderId} إلى "${newStatus}".`,
       });
     } catch (err) {
       console.error(err);
@@ -199,7 +200,7 @@ export default function DashboardPage() {
                                 {orders.map(order => (
                                     <DialogTrigger key={order.id} asChild>
                                         <TableRow onClick={() => setSelectedOrder(order)} className="cursor-pointer">
-                                            <TableCell className="font-medium">#{order.id.slice(-6)}</TableCell>
+                                            <TableCell className="font-medium">#{order.id}</TableCell>
                                             <TableCell>{order.customer.name}</TableCell>
                                             <TableCell>{new Date(order.createdAt.seconds * 1000).toLocaleDateString('ar-EG')}</TableCell>
                                             <TableCell>
@@ -240,7 +241,7 @@ export default function DashboardPage() {
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-headline flex items-center gap-4">
                             تفاصيل الطلب 
-                            <span className="font-mono text-base bg-muted px-2 py-1 rounded">#{selectedOrder.id.slice(-6)}</span>
+                            <span className="font-mono text-base bg-muted px-2 py-1 rounded">#{selectedOrder.id}</span>
                         </DialogTitle>
                          <DialogDescription>
                             تم إنشاء الطلب في: {new Date(selectedOrder.createdAt.seconds * 1000).toLocaleString('ar-EG')}
@@ -287,3 +288,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
