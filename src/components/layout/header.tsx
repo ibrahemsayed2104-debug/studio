@@ -44,7 +44,7 @@ export function Header() {
       ...navLinks,
       ...customerLinks,
       { href: siteConfig.contact.googleMapsUrl, label: 'الموقع', icon: MapPin, external: true },
-      // { href: '/admin/dashboard', label: 'إدارة الطلبات', icon: ShieldCheck, admin: true },
+      { href: '/admin', label: 'إدارة الطلبات', icon: ShieldCheck, admin: true },
   ]
 
   return (
@@ -92,6 +92,24 @@ export function Header() {
                         <Link href={siteConfig.contact.googleMapsUrl} target="_blank" rel="noopener noreferrer">
                             <MapPin className="ms-2 h-4 w-4" />
                             الموقع
+                        </Link>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="text-foreground/80 hover:text-primary">
+                        <ShieldCheck className="ms-2 h-4 w-4" />
+                        لوحة التحكم
+                        <ChevronDown className="me-2 h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                     <DropdownMenuItem asChild>
+                        <Link href="/admin">
+                            <Package className="ms-2 h-4 w-4" />
+                            إدارة الطلبات
                         </Link>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
