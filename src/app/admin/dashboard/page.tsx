@@ -10,7 +10,7 @@ import { useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, AlertCircle, ShoppingBag, Truck, CheckCircle, PackageOpen, MessagesSquare, Users, PlusCircle, Trash2, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Loader2, AlertCircle, ShoppingBag, Truck, CheckCircle, PackageOpen, MessagesSquare, Users, PlusCircle, Trash2, ArrowLeft, ArrowRight, Copy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -274,6 +274,16 @@ export default function DashboardPage() {
             title: "خطأ في الإدخال",
             description: "الرجاء التأكد من تعبئة جميع تفاصيل المنتجات بشكل صحيح.",
         });
+    }
+  };
+
+  const copyToClipboard = (id: string | undefined) => {
+    if (id) {
+      navigator.clipboard.writeText(id);
+      toast({
+        title: 'تم النسخ!',
+        description: 'تم نسخ رقم الطلب إلى الحافظة.',
+      });
     }
   };
 
@@ -590,8 +600,15 @@ export default function DashboardPage() {
                                 <DialogContent className="sm:max-w-2xl">
                                     <DialogHeader>
                                         <DialogTitle className="text-2xl font-headline flex items-center gap-4">
-                                            تفاصيل الطلب 
-                                            <span className="font-mono text-base bg-muted px-2 py-1 rounded">#{selectedOrder.id}</span>
+                                            <span>تفاصيل الطلب</span> 
+                                            <div className="flex items-center gap-2">
+                                              <p className="font-mono text-base bg-muted px-2 py-1 rounded">
+                                                #{selectedOrder.id}
+                                              </p>
+                                              <Button variant="ghost" size="icon" onClick={() => copyToClipboard(selectedOrder.id)} aria-label="نسخ رقم الطلب">
+                                                <Copy className="h-5 w-5" />
+                                              </Button>
+                                            </div>
                                         </DialogTitle>
                                         <DialogDescription>
                                             {selectedOrder.createdAt ? `تم إنشاء الطلب في: ${new Date(selectedOrder.createdAt.seconds * 1000).toLocaleString('ar-EG')}` : 'جاري إنشاء الطلب...'}
@@ -704,3 +721,4 @@ export default function DashboardPage() {
   );
 }
 
+    
