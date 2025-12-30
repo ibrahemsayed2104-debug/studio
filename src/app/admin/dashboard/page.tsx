@@ -58,6 +58,7 @@ interface ContactRequestData extends DocumentData {
 
 
 const ORDER_STATUSES = ['قيد المعالجة', 'تم الشحن', 'تم التوصيل', 'تم استلام الطلب', 'ملغي'];
+const CONTACT_STATUSES = ['جديد', 'تم التواصل', 'مغلق'];
 
 export default function DashboardPage() {
   const [orders, setOrders] = useState<OrderData[]>([]);
@@ -66,7 +67,8 @@ export default function DashboardPage() {
   const [isContactsLoading, setIsContactsLoading] = useState(true);
   const [ordersError, setOrdersError] = useState<string | null>(null);
   const [contactsError, setContactsError] = useState<string | null>(null);
-  const [statusMap, setStatusMap] = useState<Record<string, string>>({});
+  const [orderStatusMap, setOrderStatusMap] = useState<Record<string, string>>({});
+  const [contactStatusMap, setContactStatusMap] = useState<Record<string, string>>({});
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
 
@@ -88,7 +90,7 @@ export default function DashboardPage() {
         fetchedOrders.forEach(order => {
           initialStatus[order.id] = order.status;
         });
-        setStatusMap(initialStatus);
+        setOrderStatusMap(initialStatus);
         setIsOrdersLoading(false);
       },
       (err) => {
@@ -105,6 +107,11 @@ export default function DashboardPage() {
       (snapshot) => {
         const fetchedContacts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ContactRequestData));
         setContactRequests(fetchedContacts);
+        const initialStatus: Record<string, string> = {};
+        fetchedContacts.forEach(req => {
+            initialStatus[req.id] = req.status;
+        });
+        setContactStatusMap(initialStatus);
         setIsContactsLoading(false);
       },
       (err) => {
@@ -120,9 +127,9 @@ export default function DashboardPage() {
     };
   }, [firestore]);
 
-  const handleUpdateStatus = async (orderId: string, e: React.MouseEvent) => {
+  const handleUpdateOrderStatus = async (orderId: string, e: React.MouseEvent) => {
     e.stopPropagation(); 
-    const newStatus = statusMap[orderId];
+    const newStatus = orderStatusMap[orderId];
     if (!newStatus || !firestore) return;
 
     setUpdatingId(orderId);
@@ -145,14 +152,42 @@ export default function DashboardPage() {
     }
   };
   
+  const handleUpdateContactStatus = async (requestId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newStatus = contactStatusMap[requestId];
+    if (!newStatus || !firestore) return;
+
+    setUpdatingId(requestId);
+    try {
+      const contactRef = doc(firestore, 'contact_form_entries', requestId);
+      await updateDoc(contactRef, { status: newStatus });
+      toast({
+        title: 'تم تحديث الحالة',
+        description: `تم تحديث حالة طلب التواصل #${requestId} إلى "${newStatus}".`,
+      });
+    } catch (err) {
+      console.error(err);
+      toast({
+        variant: 'destructive',
+        title: 'خطأ في التحديث',
+        description: 'لم نتمكن من تحديث حالة طلب التواصل. الرجاء المحاولة مرة أخرى.',
+      });
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
       case 'تم التوصيل':
       case 'تم استلام الطلب':
+      case 'تم التواصل':
+      case 'مغلق':
         return 'default'; // Green
       case 'تم الشحن':
         return 'secondary'; // Gray
       case 'قيد المعالجة':
+      case 'جديد':
         return 'outline'; // Yellowish/brownish
        case 'ملغي':
         return 'destructive'; // Red
@@ -177,8 +212,12 @@ export default function DashboardPage() {
     }
   };
 
-  const handleStatusChange = (orderId: string, newStatus: string) => {
-    setStatusMap(prev => ({ ...prev, [orderId]: newStatus }));
+  const handleOrderStatusChange = (orderId: string, newStatus: string) => {
+    setOrderStatusMap(prev => ({ ...prev, [orderId]: newStatus }));
+  };
+
+  const handleContactStatusChange = (requestId: string, newStatus: string) => {
+    setContactStatusMap(prev => ({ ...prev, [requestId]: newStatus }));
   };
 
   const renderLoading = (message: string) => (
@@ -262,7 +301,7 @@ export default function DashboardPage() {
                                                     </TableCell>
                                                     <TableCell onClick={(e) => e.stopPropagation()}>
                                                         <div className="flex items-center gap-2">
-                                                            <Select value={statusMap[order.id]} onValueChange={(newStatus) => handleStatusChange(order.id, newStatus)}>
+                                                            <Select value={orderStatusMap[order.id]} onValueChange={(newStatus) => handleOrderStatusChange(order.id, newStatus)}>
                                                                 <SelectTrigger className="w-[180px]">
                                                                     <SelectValue placeholder="اختر حالة" />
                                                                 </SelectTrigger>
@@ -273,8 +312,8 @@ export default function DashboardPage() {
                                                                 </SelectContent>
                                                             </Select>
                                                             <Button
-                                                                onClick={(e) => handleUpdateStatus(order.id, e)}
-                                                                disabled={updatingId === order.id || order.status === statusMap[order.id]}
+                                                                onClick={(e) => handleUpdateOrderStatus(order.id, e)}
+                                                                disabled={updatingId === order.id || order.status === orderStatusMap[order.id]}
                                                                 size="sm"
                                                             >
                                                                 {updatingId === order.id ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : 'تحديث'}
@@ -309,9 +348,9 @@ export default function DashboardPage() {
                                     <TableRow>
                                         <TableHead className="text-right">الرقم المرجعي</TableHead>
                                         <TableHead className="text-right">الاسم</TableHead>
-                                        <TableHead className="text-right">رقم الهاتف</TableHead>
                                         <TableHead className="text-right">تاريخ الطلب</TableHead>
-                                        <TableHead className="text-right">العنوان</TableHead>
+                                        <TableHead className="text-right">الحالة</TableHead>
+                                        <TableHead className="text-right w-[350px]">تغيير الحالة</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -319,9 +358,31 @@ export default function DashboardPage() {
                                         <TableRow key={request.id}>
                                             <TableCell className="font-medium">{request.id}</TableCell>
                                             <TableCell>{request.customer.name}</TableCell>
-                                            <TableCell>{request.customer.phone}</TableCell>
                                             <TableCell>{new Date(request.createdAt.seconds * 1000).toLocaleDateString('ar-EG')}</TableCell>
-                                            <TableCell>{request.customer.address}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={getStatusVariant(request.status)}>{request.status}</Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <Select value={contactStatusMap[request.id] || ''} onValueChange={(newStatus) => handleContactStatusChange(request.id, newStatus)}>
+                                                        <SelectTrigger className="w-[180px]">
+                                                            <SelectValue placeholder="اختر حالة" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {CONTACT_STATUSES.map(status => (
+                                                                <SelectItem key={status} value={status}>{status}</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <Button
+                                                        onClick={(e) => handleUpdateContactStatus(request.id, e)}
+                                                        disabled={updatingId === request.id || request.status === contactStatusMap[request.id]}
+                                                        size="sm"
+                                                    >
+                                                        {updatingId === request.id ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : 'تحديث'}
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -384,5 +445,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
