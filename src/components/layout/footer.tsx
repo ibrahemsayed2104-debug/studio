@@ -35,7 +35,6 @@ export function Footer() {
               <li><Link href="/" className="text-sm hover:text-primary transition-colors">الرئيسية</Link></li>
               <li><Link href="/design-assistant" className="text-sm hover:text-primary transition-colors">مساعد التصميم</Link></li>
               <li><Link href="/orders" className="text-sm hover:text-primary transition-colors">تتبع طلبك</Link></li>
-              <li><Link href="/admin" className="text-sm hover:text-primary transition-colors">إدارة الطلبات</Link></li>
               <li><Link href="/contact" className="text-sm hover:text-primary transition-colors">تواصل معنا</Link></li>
             </ul>
           </div>
