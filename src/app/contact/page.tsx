@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -8,9 +9,9 @@ import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Send, MapPin, Navigation, Loader2 } from "lucide-react";
+import { Send, MapPin, Navigation, Loader2, CheckCircle2, Copy } from "lucide-react";
 import { siteConfig } from "@/lib/config";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SAUDI_CITIES, EGYPT_GOVERNORATES, COUNTRIES } from "@/lib/data";
@@ -36,6 +37,7 @@ export default function ContactPage() {
   const { toast } = useToast();
   const firestore = useFirestore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastRequestId, setLastRequestId] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -112,7 +114,7 @@ export default function ContactPage() {
       
       toast({
         title: "تم استلام طلبك بنجاح!",
-        description: `الرقم المرجعي لطلبك هو: ${requestId}`,
+        description: `سيتم توجيهك الآن لإرسال رسالة واتساب.`,
       });
 
       if (firestore) {
@@ -127,6 +129,7 @@ export default function ContactPage() {
           console.error("Firestore permission error during contact submission, logged.", permissionError);
         });
       }
+      setLastRequestId(requestId);
       form.reset();
     } catch (error) {
        console.error("Error processing contact request: ", error);
@@ -140,6 +143,20 @@ export default function ContactPage() {
     }
   }
 
+  const copyToClipboard = () => {
+    if (lastRequestId) {
+      navigator.clipboard.writeText(lastRequestId);
+      toast({
+        title: 'تم النسخ!',
+        description: 'تم نسخ الرقم المرجعي إلى الحافظة.',
+      });
+    }
+  };
+
+  const handleNewRequest = () => {
+    setLastRequestId(null);
+  };
+
   return (
     <div className="container mx-auto max-w-2xl px-4 py-8 md:py-12">
       <div className="mb-8 text-center">
@@ -152,128 +169,53 @@ export default function ContactPage() {
       </div>
 
       <div className="space-y-12">
-        <Card>
-          <CardHeader>
-            <CardTitle>أرسل لنا طلب تواصل</CardTitle>
-            <CardDescription>املأ النموذج أدناه وسنعاود الاتصال بك في أقرب وقت.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>الاسم</FormLabel>
-                      <FormControl>
-                        <Input placeholder="اسمك الكامل" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>رقم الهاتف</FormLabel>
-                      <FormControl>
-                        <Input type="tel" placeholder="05xxxxxxxx" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="country"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>الدولة</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر دولتك" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {selectedCountry === 'مصر' && (
+        {lastRequestId ? (
+          <Card className="w-full text-center animate-in fade-in-50">
+            <CardHeader>
+              <div className="mx-auto bg-green-100 dark:bg-green-900/50 rounded-full p-4 w-fit">
+                <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
+              </div>
+              <CardTitle className="text-3xl font-headline mt-4">تم استلام طلبك بنجاح</CardTitle>
+              <CardDescription className="text-lg">
+                شكرًا لتواصلك معنا. احتفظ بالرقم المرجعي لمتابعة طلبك.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-6">
+                <p className="text-muted-foreground">الرقم المرجعي لطلبك:</p>
+                <div className="mt-2 flex justify-center items-center gap-2">
+                  <p className="text-lg font-mono font-bold p-2 border-2 border-dashed rounded-md bg-muted">
+                    {lastRequestId}
+                  </p>
+                  <Button variant="ghost" size="icon" onClick={copyToClipboard} aria-label="نسخ الرقم المرجعي">
+                    <Copy className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={handleNewRequest} size="lg" className="w-full font-bold">
+                إرسال طلب جديد
+              </Button>
+            </CardFooter>
+          </Card>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>أرسل لنا طلب تواصل</CardTitle>
+              <CardDescription>املأ النموذج أدناه وسنعاود الاتصال بك في أقرب وقت.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <FormField
                     control={form.control}
-                    name="governorate"
+                    name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>المحافظة</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || ''}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="اختر محافظتك" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {EGYPT_GOVERNORATES.map(g => <SelectItem key={g.governorate} value={g.governorate}>{g.governorate}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-                <FormField
-                  control={form.control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>المدينة</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value} disabled={cities.length === 0}>
+                        <FormLabel>الاسم</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر المدينة" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {cities.map((city) => (
-                            <SelectItem key={city} value={city}>
-                              {city}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>تفاصيل العنوان (الشارع والحي)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="اكتب اسم الشارع والحي هنا..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <div className="grid sm:grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="buildingNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>رقم العمارة</FormLabel>
-                        <FormControl>
-                          <Input placeholder="مثال: 15" {...field} />
+                          <Input placeholder="اسمك الكامل" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -281,12 +223,12 @@ export default function ContactPage() {
                   />
                   <FormField
                     control={form.control}
-                    name="floorNumber"
+                    name="phone"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>الدور</FormLabel>
+                        <FormLabel>رقم الهاتف</FormLabel>
                         <FormControl>
-                          <Input placeholder="مثال: 3" {...field} />
+                          <Input type="tel" placeholder="05xxxxxxxx" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -294,26 +236,134 @@ export default function ContactPage() {
                   />
                    <FormField
                     control={form.control}
-                    name="apartmentNumber"
+                    name="country"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>رقم الشقة</FormLabel>
+                        <FormLabel>الدولة</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="اختر دولتك" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {selectedCountry === 'مصر' && (
+                    <FormField
+                      control={form.control}
+                      name="governorate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>المحافظة</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value || ''}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="اختر محافظتك" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {EGYPT_GOVERNORATES.map(g => <SelectItem key={g.governorate} value={g.governorate}>{g.governorate}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                  <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>المدينة</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={cities.length === 0}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="اختر المدينة" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {cities.map((city) => (
+                              <SelectItem key={city} value={city}>
+                                {city}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>تفاصيل العنوان (الشارع والحي)</FormLabel>
                         <FormControl>
-                          <Input placeholder="مثال: 12" {...field} />
+                          <Input placeholder="اكتب اسم الشارع والحي هنا..." {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
-                <Button type="submit" className="w-full font-bold" size="lg" disabled={isSubmitting}>
-                  {isSubmitting ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : <Send className="ms-2 h-4 w-4" />}
-                  {isSubmitting ? 'جاري الإرسال...' : 'إرسال الطلب عبر واتساب'}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+                   <div className="grid sm:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="buildingNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>رقم العمارة</FormLabel>
+                          <FormControl>
+                            <Input placeholder="مثال: 15" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="floorNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>الدور</FormLabel>
+                          <FormControl>
+                            <Input placeholder="مثال: 3" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                      control={form.control}
+                      name="apartmentNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>رقم الشقة</FormLabel>
+                          <FormControl>
+                            <Input placeholder="مثال: 12" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full font-bold" size="lg" disabled={isSubmitting}>
+                    {isSubmitting ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : <Send className="ms-2 h-4 w-4" />}
+                    {isSubmitting ? 'جاري الإرسال...' : 'إرسال الطلب عبر واتساب'}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        )}
+
 
         <Separator />
 
