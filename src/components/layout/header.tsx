@@ -39,12 +39,14 @@ export function Header() {
   const handleMobileLinkClick = () => {
     setMobileMenuOpen(false);
   };
+  
+  const isAdminMode = process.env.NEXT_PUBLIC_APP_MODE === 'ADMIN';
 
   const allMobileLinks = [
       ...navLinks,
       ...customerLinks,
       { href: siteConfig.contact.googleMapsUrl, label: 'الموقع', icon: MapPin, external: true },
-      { href: '/admin', label: 'إدارة الطلبات', icon: ShieldCheck, admin: true },
+      ...(isAdminMode ? [{ href: '/admin', label: 'إدارة الطلبات', icon: ShieldCheck, admin: true }] : []),
   ]
 
   return (
@@ -97,23 +99,25 @@ export function Header() {
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-foreground/80 hover:text-primary">
-                        <ShieldCheck className="ms-2 h-4 w-4" />
-                        لوحة التحكم
-                        <ChevronDown className="me-2 h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                     <DropdownMenuItem asChild>
-                        <Link href="/admin">
-                            <Package className="ms-2 h-4 w-4" />
-                            إدارة الطلبات
-                        </Link>
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+            {isAdminMode && (
+              <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="text-foreground/80 hover:text-primary">
+                          <ShieldCheck className="ms-2 h-4 w-4" />
+                          لوحة التحكم
+                          <ChevronDown className="me-2 h-4 w-4" />
+                      </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                      <DropdownMenuItem asChild>
+                          <Link href="/admin">
+                              <Package className="ms-2 h-4 w-4" />
+                              إدارة الطلبات
+                          </Link>
+                      </DropdownMenuItem>
+                  </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </nav>
           
           <div className="flex items-center gap-2">
