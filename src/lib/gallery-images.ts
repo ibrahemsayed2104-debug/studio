@@ -9,10 +9,10 @@ export type GalleryItem = {
 
 export const galleryImages: { [key: string]: GalleryItem[] } = {
   classic: [
-    { id: 'cl-1', url: 'https://images.unsplash.com/photo-1620171699144-8414555e6b7e?w=800&h=800&fit=crop', hint: 'classic curtain', type: 'image', aspectRatio: '1/1' },
-    { id: 'cl-2', url: 'https://images.unsplash.com/photo-1595265010264-c15786ca6c5a?w=800&h=600&fit=crop', hint: 'elegant drape', type: 'image', aspectRatio: '4/3' },
-    { id: 'cl-3', url: 'https://images.unsplash.com/photo-1617529497047-29a4a74a1a72?w=600&h=800&fit=crop', hint: 'luxury curtain', type: 'image', aspectRatio: '3/4' },
-    { id: 'cl-4', url: 'https://images.unsplash.com/photo-1616047003-83204733c09b?w=600&h=800&fit=crop', hint: 'vintage curtain', type: 'image', aspectRatio: '3/4' },
+    { id: 'cl-1', url: 'https://zeuniform.com/wp-content/uploads/2024/03/F73FTtGXQAAcy2G.jpg', hint: 'classic curtain', type: 'image', aspectRatio: '4/3' },
+    { id: 'cl-2', url: 'https://i.pinimg.com/originals/f2/02/b6/f202b66236528753d0693198083a544f.jpg', hint: 'elegant drape', type: 'image', aspectRatio: '3/4' },
+    { id: 'cl-3', url: 'https://i.pinimg.com/736x/d4/0e/a3/d40ea3f350834335f6399b1a03a7431e.jpg', hint: 'luxury curtain', type: 'image', aspectRatio: '3/4' },
+    { id: 'cl-4', url: 'https://www.alhabibshop.com/wp-content/uploads/2021/11/curtains-classic-2-scaled-1.jpg', hint: 'vintage curtain', type: 'image', aspectRatio: '1/1' },
   ],
   roman: [
     { id: 'ro-1', url: 'https://images.unsplash.com/photo-1615875605825-5eb9bb5fea38?w=800&h=800&fit=crop', hint: 'roman shade', type: 'image', aspectRatio: '1/1' },
