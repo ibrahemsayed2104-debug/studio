@@ -2,18 +2,15 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { GalleryVertical, X, Video } from 'lucide-react';
+import { GalleryVertical, X, Video, Image as ImageIcon } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { galleryImages, type GalleryItem } from '@/lib/gallery-images';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
 const categories = [
-  { id: 'classic', name: 'كلاسيك', images: galleryImages.classic },
-  { id: 'roman', name: 'روماني', images: galleryImages.roman },
-  { id: 'hotel', name: 'فندقية', images: galleryImages.hotel },
-  { id: 'modern', name: 'مودرن', images: galleryImages.modern },
-  { id: 'videos', name: 'فيديوهات', images: galleryImages.videos },
+  { id: 'gallery', name: 'المعرض', icon: ImageIcon, images: galleryImages.gallery },
+  { id: 'videos', name: 'فيديوهات', icon: Video, images: galleryImages.videos },
 ];
 
 export default function GalleryPage() {
@@ -51,7 +48,10 @@ export default function GalleryPage() {
                 )}
             </div>
             <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                {item.type === 'video' && <Video className="h-12 w-12 text-white" />}
+                {item.type === 'video' ? 
+                    <Video className="h-12 w-12 text-white" /> :
+                    <ImageIcon className="h-12 w-12 text-white" />
+                }
             </div>
         </button>
     );
@@ -74,9 +74,12 @@ export default function GalleryPage() {
         </div>
 
         <Tabs defaultValue={categories[0].id} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-8">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
             {categories.map(category => (
-              <TabsTrigger key={category.id} value={category.id}>{category.name}</TabsTrigger>
+              <TabsTrigger key={category.id} value={category.id} className="gap-2">
+                <category.icon className="h-5 w-5"/>
+                {category.name}
+              </TabsTrigger>
             ))}
           </TabsList>
 
