@@ -7,8 +7,8 @@ export default function AdminPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Always redirect to the dashboard. The dashboard page itself
-    // is now the single point of entry for admins.
+    // Always redirect from the base /admin to the dashboard.
+    // The dashboard is the single entry point for admins.
     router.replace('/admin/dashboard');
   }, [router]);
 
