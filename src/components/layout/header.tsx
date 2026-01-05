@@ -40,15 +40,10 @@ export function Header() {
     setMobileMenuOpen(false);
   };
   
-  // The Admin link is now hardcoded to point to the dashboard page.
-  // It will be conditionally rendered based on the NEXT_PUBLIC_APP_MODE.
-  const isAdminMode = process.env.NEXT_PUBLIC_APP_MODE === 'ADMIN';
-
   const allMobileLinks = [
       ...navLinks,
       ...customerLinks,
       { href: siteConfig.contact.googleMapsUrl, label: 'الموقع', icon: MapPin, external: true },
-      ...(isAdminMode ? [{ href: '/admin/dashboard', label: 'إدارة الطلبات', icon: ShieldCheck, admin: true }] : []),
   ]
 
   return (
@@ -101,25 +96,6 @@ export function Header() {
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            {isAdminMode && (
-              <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="text-foreground/80 hover:text-primary">
-                          <ShieldCheck className="ms-2 h-4 w-4" />
-                          لوحة التحكم
-                          <ChevronDown className="me-2 h-4 w-4" />
-                      </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                      <DropdownMenuItem asChild>
-                          <Link href="/admin/dashboard">
-                              <Package className="ms-2 h-4 w-4" />
-                              إدارة الطلبات
-                          </Link>
-                      </DropdownMenuItem>
-                  </DropdownMenuContent>
-              </DropdownMenu>
-            )}
           </nav>
           
           <div className="flex items-center gap-2">
@@ -162,7 +138,7 @@ export function Header() {
                       onClick={handleMobileLinkClick}
                       className={cn(
                         'text-lg transition-colors hover:text-foreground/80 flex items-center gap-3',
-                        (pathname === link.href || (link.admin && pathname.startsWith('/admin'))) ? 'text-primary font-semibold' : 'text-foreground/60'
+                        pathname === link.href ? 'text-primary font-semibold' : 'text-foreground/60'
                       )}
                     >
                       <link.icon className="h-5 w-5" />

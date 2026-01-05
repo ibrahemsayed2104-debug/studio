@@ -120,10 +120,8 @@ export default function DashboardPage() {
     name: "items"
   });
 
-  const isAdminMode = process.env.NEXT_PUBLIC_APP_MODE === 'ADMIN';
-
   useEffect(() => {
-    if (!firestore || !isAdminMode) {
+    if (!firestore) {
       setIsOrdersLoading(false);
       setIsContactsLoading(false);
       return;
@@ -173,7 +171,7 @@ export default function DashboardPage() {
         unsubscribeOrders();
         unsubscribeContacts();
     };
-  }, [firestore, isAdminMode]);
+  }, [firestore]);
 
   const handleUpdateOrderStatus = async (orderId: string, e: React.MouseEvent) => {
     e.stopPropagation(); 
@@ -358,40 +356,6 @@ export default function DashboardPage() {
         <p className="mt-2 max-w-xs mx-auto">{description}</p>
     </div>
   );
-
-  if (!isAdminMode) {
-    return (
-      <div className="container mx-auto max-w-2xl px-4 py-12 md:py-20 flex items-center justify-center min-h-[60vh]">
-        <Card className="w-full text-center bg-destructive/10 border-destructive">
-            <CardHeader>
-                <div className="mx-auto bg-destructive/20 rounded-full p-4 w-fit">
-                    <ShieldOff className="h-12 w-12 text-destructive" />
-                </div>
-                <CardTitle className="text-3xl font-headline mt-4 text-destructive-foreground">
-                    الوصول مرفوض
-                </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <CardDescription className="text-lg !text-destructive-foreground/80">
-                    هذه الصفحة متاحة للمدير فقط. أنت حاليًا في وضع العميل.
-                </CardDescription>
-                <Alert className="text-right border-primary/50 bg-primary/10">
-                  <Info className="h-4 w-4 !text-primary-foreground" />
-                  <AlertTitle className="font-bold !text-primary-foreground">كيفية تفعيل وضع المدير:</AlertTitle>
-                  <AlertDescription className="!text-primary-foreground/80">
-                    1. افتح ملف `.env` في مشروعك.
-                    <br />
-                    2. غيّر القيمة إلى `NEXT_PUBLIC_APP_MODE=ADMIN`.
-                    <br />
-                    3. **مهم:** أعد تشغيل الخادم (`npm run dev`) لتطبيق التغييرات.
-                  </AlertDescription>
-                </Alert>
-            </CardContent>
-        </Card>
-    </div>
-    );
-  }
-
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8 md:py-12">
