@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, ShoppingCart, GalleryVertical, Home, Wand2, ChevronDown, Phone, MapPin, User, Truck } from 'lucide-react';
-import { useState } from 'react';
+import { Menu, ShoppingCart, GalleryVertical, Home, Wand2, ChevronDown, Phone, MapPin, User, Truck, ShieldCheck, Package } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -35,11 +35,15 @@ export function Header() {
   const pathname = usePathname();
   const { itemCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Do not show header on admin pages, as they have their own layout
-  if (pathname.startsWith('/admin')) {
-    return null;
-  }
+  const [isAdminView, setIsAdminView] = useState(false);
+  
+  useEffect(() => {
+    // This will run on the client side and determine if we are in admin view.
+    // This is a simple but effective way to have a different UI for admin
+    // without complex auth systems for this prototype.
+    const isAdmin = window.location.hostname.includes('localhost') || pathname.startsWith('/admin');
+    setIsAdminView(isAdmin);
+  }, [pathname]);
   
   const handleMobileLinkClick = () => {
     setMobileMenuOpen(false);
@@ -49,7 +53,35 @@ export function Header() {
       ...navLinks,
       ...customerLinks,
       { href: siteConfig.contact.googleMapsUrl, label: 'الموقع', icon: MapPin, external: true },
-  ]
+  ];
+  
+   if (pathname.startsWith('/admin')) {
+    return (
+     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
+          <Link href="/admin/dashboard" className="flex items-center space-x-2 rtl:space-x-reverse">
+            <CurtainIcon className="h-6 w-6 text-primary" />
+            <span className="font-bold font-headline text-2xl">{siteConfig.name} - الإدارة</span>
+          </Link>
+          <nav className="flex items-center gap-2 text-sm">
+             <Button variant="ghost" asChild>
+                <Link href="/admin/dashboard">
+                    <ShieldCheck className="ms-2 h-4 w-4" />
+                    لوحة التحكم
+                </Link>
+            </Button>
+            <Button variant="ghost" asChild>
+                <Link href="/" target="_blank">
+                    <Home className="ms-2 h-4 w-4" />
+                    عرض الموقع
+                </Link>
+            </Button>
+          </nav>
+        </div>
+      </header>
+    );
+  }
+
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -100,6 +132,26 @@ export function Header() {
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
+            
+            {isAdminView && (
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="text-primary border-primary/50 hover:text-primary hover:bg-primary/5">
+                            <ShieldCheck className="ms-2 h-4 w-4" />
+                            لوحة التحكم
+                            <ChevronDown className="me-2 h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                         <DropdownMenuItem asChild>
+                            <Link href="/admin/dashboard">
+                                <Package className="ms-2 h-4 w-4" />
+                                إدارة الطلبات
+                            </Link>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            )}
 
           </nav>
           
@@ -150,6 +202,19 @@ export function Header() {
                       {link.label}
                     </Link>
                   ))}
+                   {isAdminView && (
+                     <Link
+                      href="/admin/dashboard"
+                      onClick={handleMobileLinkClick}
+                      className={cn(
+                        'text-lg transition-colors hover:text-foreground/80 flex items-center gap-3',
+                        pathname.startsWith('/admin') ? 'text-primary font-semibold' : 'text-foreground/60'
+                      )}
+                    >
+                      <ShieldCheck className="h-5 w-5" />
+                      إدارة الطلبات
+                    </Link>
+                   )}
                 </div>
               </SheetContent>
             </Sheet>
