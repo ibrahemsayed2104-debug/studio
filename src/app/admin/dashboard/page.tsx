@@ -10,7 +10,7 @@ import { useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, AlertCircle, ShoppingBag, Truck, CheckCircle, PackageOpen, MessagesSquare, Users, PlusCircle, Trash2, ArrowLeft, ArrowRight, Copy } from 'lucide-react';
+import { Loader2, AlertCircle, ShoppingBag, Truck, CheckCircle, PackageOpen, MessagesSquare, Users, PlusCircle, Trash2, ArrowLeft, ArrowRight, Copy, ShieldOff } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -352,6 +352,30 @@ export default function DashboardPage() {
         <p className="mt-2 max-w-xs mx-auto">{description}</p>
     </div>
   );
+
+  const isAdminMode = process.env.NEXT_PUBLIC_APP_MODE === 'ADMIN';
+
+  if (!isAdminMode) {
+    return (
+      <div className="container mx-auto max-w-2xl px-4 py-12 md:py-20 flex items-center justify-center min-h-[60vh]">
+        <Card className="w-full text-center bg-destructive/10 border-destructive">
+            <CardHeader>
+                <div className="mx-auto bg-destructive/20 rounded-full p-4 w-fit">
+                    <ShieldOff className="h-12 w-12 text-destructive" />
+                </div>
+                <CardTitle className="text-3xl font-headline mt-4 text-destructive-foreground">
+                    الوصول مرفوض
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <CardDescription className="text-lg !text-destructive-foreground/80">
+                    هذه الصفحة متاحة للمدير فقط.
+                </CardDescription>
+            </CardContent>
+        </Card>
+    </div>
+    );
+  }
 
 
   return (
@@ -720,5 +744,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
