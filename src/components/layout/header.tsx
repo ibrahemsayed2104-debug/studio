@@ -31,6 +31,9 @@ const customerLinks = [
     { href: '/contact', label: 'تواصل معنا', icon: Phone },
 ]
 
+// This variable will be automatically set by Next.js based on your .env file
+const isAdminMode = process.env.NEXT_PUBLIC_APP_MODE === 'ADMIN';
+
 export function Header() {
   const pathname = usePathname();
   const { itemCount } = useCart();
@@ -44,6 +47,8 @@ export function Header() {
       ...navLinks,
       ...customerLinks,
       { href: siteConfig.contact.googleMapsUrl, label: 'الموقع', icon: MapPin, external: true },
+      // Conditionally add admin link for mobile menu
+      ...(isAdminMode ? [{ href: '/admin/dashboard', label: 'إدارة الطلبات', icon: ShieldCheck, admin: true }] : [])
   ]
 
   return (
@@ -96,6 +101,27 @@ export function Header() {
                 </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* Admin dropdown - only shows if isAdminMode is true */}
+            {isAdminMode && (
+              <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="text-primary border-primary hover:bg-primary/10">
+                          <ShieldCheck className="ms-2 h-4 w-4" />
+                          لوحة التحكم
+                          <ChevronDown className="me-2 h-4 w-4" />
+                      </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                       <DropdownMenuItem asChild>
+                          <Link href="/admin/dashboard">
+                              <Package className="ms-2 h-4 w-4" />
+                              إدارة الطلبات
+                          </Link>
+                      </DropdownMenuItem>
+                  </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
           </nav>
           
           <div className="flex items-center gap-2">
@@ -138,7 +164,7 @@ export function Header() {
                       onClick={handleMobileLinkClick}
                       className={cn(
                         'text-lg transition-colors hover:text-foreground/80 flex items-center gap-3',
-                        pathname === link.href ? 'text-primary font-semibold' : 'text-foreground/60'
+                        (pathname === link.href || (link.admin && pathname.startsWith('/admin'))) ? 'text-primary font-semibold' : 'text-foreground/60'
                       )}
                     >
                       <link.icon className="h-5 w-5" />

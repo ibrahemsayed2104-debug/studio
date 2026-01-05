@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -23,6 +22,8 @@ import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { PRODUCTS, fabrics, SIZES, COLORS, STYLES, COUNTRIES, SAUDI_CITIES, EGYPT_GOVERNORATES } from '@/lib/data';
 import { ScrollArea } from '@/components/ui/scroll-area';
+
+const isAdminMode = process.env.NEXT_PUBLIC_APP_MODE === 'ADMIN';
 
 interface OrderData extends DocumentData {
   id: string;
@@ -121,7 +122,7 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
-    if (!firestore) {
+    if (!firestore || !isAdminMode) {
       setIsOrdersLoading(false);
       setIsContactsLoading(false);
       return;
@@ -356,6 +357,23 @@ export default function DashboardPage() {
         <p className="mt-2 max-w-xs mx-auto">{description}</p>
     </div>
   );
+
+  if (!isAdminMode) {
+    return (
+        <div className="container mx-auto max-w-3xl px-4 py-8 md:py-20 text-center">
+            <Alert variant="destructive">
+                <ShieldOff className="h-4 w-4" />
+                <AlertTitle>الوصول مرفوض</AlertTitle>
+                <AlertDescription>
+                    <p>لوحة التحكم هذه متاحة للمدير فقط.</p>
+                    <p className="mt-2 text-xs">
+                        للوصول: يجب عليك ضبط متغير <code className="font-mono bg-destructive/20 p-1 rounded">NEXT_PUBLIC_APP_MODE</code> إلى <code className="font-mono bg-destructive/20 p-1 rounded">ADMIN</code> في ملف <code className="font-mono bg-destructive/20 p-1 rounded">.env</code> ثم إعادة تشغيل الخادم.
+                    </p>
+                </AlertDescription>
+            </Alert>
+        </div>
+    );
+  }
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8 md:py-12">
