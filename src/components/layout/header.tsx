@@ -40,13 +40,15 @@ export function Header() {
     setMobileMenuOpen(false);
   };
   
+  // The Admin link is now hardcoded to point to the dashboard page.
+  // It will be conditionally rendered based on the NEXT_PUBLIC_APP_MODE.
   const isAdminMode = process.env.NEXT_PUBLIC_APP_MODE === 'ADMIN';
 
   const allMobileLinks = [
       ...navLinks,
       ...customerLinks,
       { href: siteConfig.contact.googleMapsUrl, label: 'الموقع', icon: MapPin, external: true },
-      ...(isAdminMode ? [{ href: '/admin', label: 'إدارة الطلبات', icon: ShieldCheck, admin: true }] : []),
+      ...(isAdminMode ? [{ href: '/admin/dashboard', label: 'إدارة الطلبات', icon: ShieldCheck, admin: true }] : []),
   ]
 
   return (
@@ -110,7 +112,7 @@ export function Header() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                       <DropdownMenuItem asChild>
-                          <Link href="/admin">
+                          <Link href="/admin/dashboard">
                               <Package className="ms-2 h-4 w-4" />
                               إدارة الطلبات
                           </Link>
