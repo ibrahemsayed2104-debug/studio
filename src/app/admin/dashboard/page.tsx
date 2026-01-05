@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { collection, onSnapshot, query, orderBy, doc, updateDoc, addDoc, serverTimestamp, DocumentData } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, addDoc, serverTimestamp, DocumentData, deleteDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -15,6 +15,17 @@ import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -96,6 +107,7 @@ export default function DashboardPage() {
   const [orderStatusMap, setOrderStatusMap] = useState<Record<string, string>>({});
   const [contactStatusMap, setContactStatusMap] = useState<Record<string, string>>({});
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
   const [isAddOrderOpen, setIsAddOrderOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -287,6 +299,27 @@ export default function DashboardPage() {
         title: 'تم النسخ!',
         description: 'تم نسخ رقم الطلب إلى الحافظة.',
       });
+    }
+  };
+
+  const handleDeleteOrder = async (orderId: string) => {
+    if (!firestore) return;
+    setDeletingId(orderId);
+    try {
+      await deleteDoc(doc(firestore, 'orders', orderId));
+      toast({
+        title: 'تم حذف الطلب',
+        description: `تم حذف الطلب رقم #${orderId} بنجاح.`,
+      });
+    } catch (error) {
+      console.error("Error deleting order: ", error);
+      toast({
+        variant: "destructive",
+        title: "خطأ في الحذف",
+        description: "لم نتمكن من حذف الطلب. الرجاء المحاولة مرة أخرى.",
+      });
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -559,41 +592,67 @@ export default function DashboardPage() {
                                             <TableHead className="text-right">التاريخ</TableHead>
                                             <TableHead className="text-right">الحالة الحالية</TableHead>
                                             <TableHead className="text-right w-[350px]">تغيير الحالة</TableHead>
+                                            <TableHead className="text-right">إجراءات</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {orders.map(order => (
-                                            <DialogTrigger key={order.id} asChild>
-                                                <TableRow onClick={() => setSelectedOrder(order)} className="cursor-pointer">
-                                                    <TableCell className="font-medium">#{order.id}</TableCell>
-                                                    <TableCell>{order.customer.name}</TableCell>
-                                                    <TableCell>{order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('ar-EG') : 'الآن'}</TableCell>
-                                                    <TableCell>
-                                                        <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
-                                                    </TableCell>
-                                                    <TableCell onClick={(e) => e.stopPropagation()}>
-                                                        <div className="flex items-center gap-2">
-                                                            <Select value={orderStatusMap[order.id]} onValueChange={(newStatus) => handleOrderStatusChange(order.id, newStatus)}>
-                                                                <SelectTrigger className="w-[180px]">
-                                                                    <SelectValue placeholder="اختر حالة" />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    {ORDER_STATUSES.map(status => (
-                                                                        <SelectItem key={status} value={status}>{status}</SelectItem>
-                                                                    ))}
-                                                                </SelectContent>
-                                                            </Select>
-                                                            <Button
-                                                                onClick={(e) => handleUpdateOrderStatus(order.id, e)}
-                                                                disabled={updatingId === order.id || order.status === orderStatusMap[order.id]}
-                                                                size="sm"
-                                                            >
-                                                                {updatingId === order.id ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : 'تحديث'}
-                                                            </Button>
-                                                        </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                            </DialogTrigger>
+                                            <TableRow key={order.id}>
+                                                <TableCell className="font-medium">
+                                                  <DialogTrigger asChild>
+                                                      <span onClick={() => setSelectedOrder(order)} className="cursor-pointer hover:underline">#{order.id}</span>
+                                                  </DialogTrigger>
+                                                </TableCell>
+                                                <TableCell>{order.customer.name}</TableCell>
+                                                <TableCell>{order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString('ar-EG') : 'الآن'}</TableCell>
+                                                <TableCell>
+                                                    <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
+                                                </TableCell>
+                                                <TableCell onClick={(e) => e.stopPropagation()}>
+                                                    <div className="flex items-center gap-2">
+                                                        <Select value={orderStatusMap[order.id]} onValueChange={(newStatus) => handleOrderStatusChange(order.id, newStatus)}>
+                                                            <SelectTrigger className="w-[180px]">
+                                                                <SelectValue placeholder="اختر حالة" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {ORDER_STATUSES.map(status => (
+                                                                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <Button
+                                                            onClick={(e) => handleUpdateOrderStatus(order.id, e)}
+                                                            disabled={updatingId === order.id || order.status === orderStatusMap[order.id]}
+                                                            size="sm"
+                                                        >
+                                                            {updatingId === order.id ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : 'تحديث'}
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                  <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                      <Button variant="ghost" size="icon" disabled={deletingId === order.id}>
+                                                          {deletingId === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 text-destructive" />}
+                                                      </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                      <AlertDialogHeader>
+                                                        <AlertDialogTitle>هل أنت متأكد تمامًا؟</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                          هذا الإجراء لا يمكن التراجع عنه. سيؤدي هذا إلى حذف الطلب بشكل دائم.
+                                                        </AlertDialogDescription>
+                                                      </AlertDialogHeader>
+                                                      <AlertDialogFooter>
+                                                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleDeleteOrder(order.id)}>
+                                                          نعم، احذف الطلب
+                                                        </AlertDialogAction>
+                                                      </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                  </AlertDialog>
+                                                </TableCell>
+                                            </TableRow>
                                         ))}
                                     </TableBody>
                                 </Table>

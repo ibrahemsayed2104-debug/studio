@@ -18,7 +18,7 @@
  * - Public Order Management: The `/orders` collection allows anyone to `create` a new
  *   document, enabling checkout for guests. It also allows anyone to `get`, `list`,
  *   and `update` to allow the public-facing dashboard and order tracking pages
- *   to function correctly without login.
+ *   to function correctly without login. `delete` is also allowed for admin management.
  * - Default Deny: Any path not explicitly defined in these rules is inaccessible.
  */
 rules_version = '2';
@@ -31,16 +31,15 @@ service cloud.firestore {
 
     /**
      * @description Manages orders. Allows anyone to create an order, and allows
-     * anyone to read/update for the public dashboard and customer tracking.
+     * anyone to read/update/delete for the public dashboard and customer tracking.
      * @path /orders/{orderId}
      * @allow (create) Any user, signed-in or anonymous, can create an order.
-     * @allow (get, list, update) Allows public dashboard and tracking to function.
+     * @allow (get, list, update, delete) Allows public dashboard and tracking to function.
      * @principle Enable public checkout and a public dashboard.
      */
     match /orders/{orderId} {
-      allow get, list, update: if true; // Anyone can read/update for the public dashboard and tracking
+      allow get, list, update, delete: if true; // Anyone can read/update/delete for the public dashboard and tracking
       allow create: if true; // Anyone can create a new order
-      allow delete: if false; // Disallow deleting orders
     }
     
     // -------------------------------------------------------------------------
@@ -73,5 +72,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
