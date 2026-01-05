@@ -10,7 +10,7 @@ import { useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, AlertCircle, ShoppingBag, Truck, CheckCircle, PackageOpen, MessagesSquare, Users, PlusCircle, Trash2, ArrowLeft, ArrowRight, Copy, ShieldOff } from 'lucide-react';
+import { Loader2, AlertCircle, ShoppingBag, Truck, CheckCircle, PackageOpen, MessagesSquare, Users, PlusCircle, Trash2, ArrowLeft, ArrowRight, Copy, ShieldOff, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -120,8 +120,14 @@ export default function DashboardPage() {
     name: "items"
   });
 
+  const isAdminMode = process.env.NEXT_PUBLIC_APP_MODE === 'ADMIN';
+
   useEffect(() => {
-    if (!firestore) return;
+    if (!firestore || !isAdminMode) {
+      setIsOrdersLoading(false);
+      setIsContactsLoading(false);
+      return;
+    }
 
     const ordersRef = collection(firestore, 'orders');
     const qOrders = query(ordersRef, orderBy('createdAt', 'desc'));
@@ -167,7 +173,7 @@ export default function DashboardPage() {
         unsubscribeOrders();
         unsubscribeContacts();
     };
-  }, [firestore]);
+  }, [firestore, isAdminMode]);
 
   const handleUpdateOrderStatus = async (orderId: string, e: React.MouseEvent) => {
     e.stopPropagation(); 
@@ -353,8 +359,6 @@ export default function DashboardPage() {
     </div>
   );
 
-  const isAdminMode = process.env.NEXT_PUBLIC_APP_MODE === 'ADMIN';
-
   if (!isAdminMode) {
     return (
       <div className="container mx-auto max-w-2xl px-4 py-12 md:py-20 flex items-center justify-center min-h-[60vh]">
@@ -367,10 +371,21 @@ export default function DashboardPage() {
                     الوصول مرفوض
                 </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
                 <CardDescription className="text-lg !text-destructive-foreground/80">
-                    هذه الصفحة متاحة للمدير فقط.
+                    هذه الصفحة متاحة للمدير فقط. أنت حاليًا في وضع العميل.
                 </CardDescription>
+                <Alert className="text-right border-primary/50 bg-primary/10">
+                  <Info className="h-4 w-4 !text-primary-foreground" />
+                  <AlertTitle className="font-bold !text-primary-foreground">كيفية تفعيل وضع المدير:</AlertTitle>
+                  <AlertDescription className="!text-primary-foreground/80">
+                    1. افتح ملف `.env` في مشروعك.
+                    <br />
+                    2. غيّر القيمة إلى `NEXT_PUBLIC_APP_MODE=ADMIN`.
+                    <br />
+                    3. **مهم:** أعد تشغيل الخادم (`npm run dev`) لتطبيق التغييرات.
+                  </AlertDescription>
+                </Alert>
             </CardContent>
         </Card>
     </div>
@@ -744,3 +759,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
