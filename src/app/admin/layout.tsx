@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Home, GalleryVertical, LayoutDashboard } from 'lucide-react';
+import { Home, LayoutDashboard, GalleryVertical } from 'lucide-react';
 import { CurtainIcon } from '@/components/icons';
 import { siteConfig } from '@/lib/config';
 import { Button } from '@/components/ui/button';
