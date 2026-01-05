@@ -41,7 +41,7 @@ export function Header() {
     // This will run on the client side and determine if we are in admin view.
     // This is a simple but effective way to have a different UI for admin
     // without complex auth systems for this prototype.
-    const isAdmin = window.location.hostname.includes('localhost') || pathname.startsWith('/admin');
+    const isAdmin = window.location.hostname.includes('localhost') || window.location.hostname.includes('cloudworkstations.dev');
     setIsAdminView(isAdmin);
   }, [pathname]);
   
