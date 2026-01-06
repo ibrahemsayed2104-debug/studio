@@ -42,7 +42,8 @@ export function Header() {
     // This is a simple but effective way to have a different UI for admin
     // without complex auth systems for this prototype.
     const isAdmin = window.location.hostname.includes('localhost') || window.location.hostname.includes('cloudworkstations.dev');
-    setIsAdminView(isAdmin);
+    // Temporarily set to false to show customer view
+    setIsAdminView(false); 
   }, [pathname]);
   
   const handleMobileLinkClick = () => {
