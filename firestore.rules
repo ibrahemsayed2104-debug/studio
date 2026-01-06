@@ -19,7 +19,6 @@
  *   document, enabling checkout for guests. It also allows anyone to `get`, `list`,
  *   and `update` to allow the public-facing dashboard and order tracking pages
  *   to function correctly without login. `delete` is also allowed for admin management.
- * - Default Deny: Any path not explicitly defined in these rules is inaccessible.
  */
 rules_version = '2';
 service cloud.firestore {
