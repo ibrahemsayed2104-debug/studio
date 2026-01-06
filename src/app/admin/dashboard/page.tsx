@@ -109,6 +109,7 @@ export default function DashboardPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
+  const [selectedContactRequest, setSelectedContactRequest] = useState<ContactRequestData | null>(null);
   const [isAddOrderOpen, setIsAddOrderOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   
@@ -297,7 +298,7 @@ export default function DashboardPage() {
       navigator.clipboard.writeText(id);
       toast({
         title: 'تم النسخ!',
-        description: 'تم نسخ رقم الطلب إلى الحافظة.',
+        description: 'تم نسخ الرقم المرجعي إلى الحافظة.',
       });
     }
   };
@@ -309,7 +310,7 @@ export default function DashboardPage() {
       await deleteDoc(doc(firestore, 'orders', orderId));
       toast({
         title: 'تم حذف الطلب',
-        description: `تم حذف الطلب رقم #${orderId} بنجاح.`,
+        description: `تم حذف الطلب رقم #${orderId.substring(0, 7)}... بنجاح.`,
       });
     } catch (error) {
       console.error("Error deleting order: ", error);
@@ -317,6 +318,27 @@ export default function DashboardPage() {
         variant: "destructive",
         title: "خطأ في الحذف",
         description: "لم نتمكن من حذف الطلب. الرجاء المحاولة مرة أخرى.",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+  
+  const handleDeleteContactRequest = async (requestId: string) => {
+    if (!firestore) return;
+    setDeletingId(requestId);
+    try {
+      await deleteDoc(doc(firestore, 'contact_form_entries', requestId));
+      toast({
+        title: 'تم حذف طلب التواصل',
+        description: `تم حذف الطلب رقم #${requestId.substring(0, 7)}... بنجاح.`,
+      });
+    } catch (error) {
+      console.error("Error deleting contact request: ", error);
+      toast({
+        variant: "destructive",
+        title: "خطأ في الحذف",
+        description: "لم نتمكن من حذف طلب التواصل. الرجاء المحاولة مرة أخرى.",
       });
     } finally {
       setDeletingId(null);
@@ -353,6 +375,12 @@ export default function DashboardPage() {
         return <PackageOpen className="h-5 w-5 text-yellow-500" />;
       case 'ملغي':
         return <AlertCircle className="h-5 w-5 text-red-500" />;
+      case 'جديد':
+         return <MessagesSquare className="h-5 w-5 text-yellow-500" />;
+      case 'تم التواصل':
+        return <Users className="h-5 w-5 text-blue-500" />;
+      case 'مغلق':
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
       default:
         return <PackageOpen className="h-5 w-5 text-gray-500" />;
     }
@@ -582,7 +610,7 @@ export default function DashboardPage() {
                     {ordersError && !isOrdersLoading && renderError(ordersError)}
                     {!isOrdersLoading && !ordersError && orders.length === 0 && renderEmpty('لا توجد طلبات بعد', 'عندما يقوم العميل بإجراء طلب جديد، سيظهر هنا.', ShoppingBag)}
                     {!isOrdersLoading && !ordersError && orders.length > 0 && (
-                        <Dialog>
+                        <Dialog onOpenChange={(isOpen) => !isOpen && setSelectedOrder(null)}>
                             <div className="border rounded-lg">
                                 <Table>
                                     <TableHeader>
@@ -597,10 +625,10 @@ export default function DashboardPage() {
                                     </TableHeader>
                                     <TableBody>
                                         {orders.map(order => (
-                                            <TableRow key={order.id}>
+                                            <TableRow key={order.id} className="cursor-pointer" onClick={() => setSelectedOrder(order)}>
                                                 <TableCell className="font-medium">
                                                   <DialogTrigger asChild>
-                                                      <span onClick={() => setSelectedOrder(order)} className="cursor-pointer hover:underline">#{order.id}</span>
+                                                      <span className="hover:underline">#{order.id.substring(0, 7)}...</span>
                                                   </DialogTrigger>
                                                 </TableCell>
                                                 <TableCell>{order.customer.name}</TableCell>
@@ -629,7 +657,7 @@ export default function DashboardPage() {
                                                         </Button>
                                                     </div>
                                                 </TableCell>
-                                                <TableCell>
+                                                <TableCell onClick={(e) => e.stopPropagation()}>
                                                   <AlertDialog>
                                                     <AlertDialogTrigger asChild>
                                                       <Button variant="ghost" size="icon" disabled={deletingId === order.id}>
@@ -727,6 +755,7 @@ export default function DashboardPage() {
                      {contactsError && !isContactsLoading && renderError(contactsError)}
                      {!isContactsLoading && !contactsError && contactRequests.length === 0 && renderEmpty('لا توجد طلبات تواصل', 'عندما يقوم زائر بإرسال طلب تواصل، سيظهر هنا.', Users)}
                      {!isContactsLoading && !contactsError && contactRequests.length > 0 && (
+                        <Dialog onOpenChange={(isOpen) => !isOpen && setSelectedContactRequest(null)}>
                          <div className="border rounded-lg">
                             <Table>
                                 <TableHeader>
@@ -736,18 +765,23 @@ export default function DashboardPage() {
                                         <TableHead className="text-right">تاريخ الطلب</TableHead>
                                         <TableHead className="text-right">الحالة</TableHead>
                                         <TableHead className="text-right w-[350px]">تغيير الحالة</TableHead>
+                                        <TableHead className="text-right">إجراءات</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {contactRequests.map(request => (
-                                        <TableRow key={request.id}>
-                                            <TableCell className="font-medium">{request.id}</TableCell>
+                                        <TableRow key={request.id} className="cursor-pointer" onClick={() => setSelectedContactRequest(request)}>
+                                            <TableCell className="font-medium">
+                                                <DialogTrigger asChild>
+                                                    <span className="hover:underline">#{request.id.substring(0, 7)}...</span>
+                                                </DialogTrigger>
+                                            </TableCell>
                                             <TableCell>{request.customer.name}</TableCell>
                                             <TableCell>{request.createdAt ? new Date(request.createdAt.seconds * 1000).toLocaleDateString('ar-EG') : 'الآن'}</TableCell>
                                             <TableCell>
                                                 <Badge variant={getStatusVariant(request.status)}>{request.status}</Badge>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell onClick={(e) => e.stopPropagation()}>
                                                 <div className="flex items-center gap-2">
                                                     <Select value={contactStatusMap[request.id] || ''} onValueChange={(newStatus) => handleContactStatusChange(request.id, newStatus)}>
                                                         <SelectTrigger className="w-[180px]">
@@ -768,11 +802,71 @@ export default function DashboardPage() {
                                                     </Button>
                                                 </div>
                                             </TableCell>
+                                            <TableCell onClick={(e) => e.stopPropagation()}>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                      <Button variant="ghost" size="icon" disabled={deletingId === request.id}>
+                                                          {deletingId === request.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 text-destructive" />}
+                                                      </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                      <AlertDialogHeader>
+                                                        <AlertDialogTitle>هل أنت متأكد تمامًا؟</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                          هذا الإجراء لا يمكن التراجع عنه. سيؤدي هذا إلى حذف طلب التواصل بشكل دائم.
+                                                        </AlertDialogDescription>
+                                                      </AlertDialogHeader>
+                                                      <AlertDialogFooter>
+                                                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleDeleteContactRequest(request.id)}>
+                                                          نعم، احذف الطلب
+                                                        </AlertDialogAction>
+                                                      </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                  </AlertDialog>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
                             </Table>
                         </div>
+                        {selectedContactRequest && (
+                            <DialogContent className="sm:max-w-lg">
+                                <DialogHeader>
+                                    <DialogTitle className="text-2xl font-headline flex items-center gap-4">
+                                        <span>تفاصيل طلب التواصل</span> 
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-mono text-base bg-muted px-2 py-1 rounded">
+                                            #{selectedContactRequest.id}
+                                            </p>
+                                            <Button variant="ghost" size="icon" onClick={() => copyToClipboard(selectedContactRequest.id)} aria-label="نسخ الرقم المرجعي">
+                                            <Copy className="h-5 w-5" />
+                                            </Button>
+                                        </div>
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                        {selectedContactRequest.createdAt ? `تم إنشاء الطلب في: ${new Date(selectedContactRequest.createdAt.seconds * 1000).toLocaleString('ar-EG')}` : 'جاري إنشاء الطلب...'}
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="py-4 space-y-6">
+                                    <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                                        {getStatusIcon(selectedContactRequest.status)}
+                                        <span className="font-semibold">الحالة الحالية:</span>
+                                        <Badge variant={getStatusVariant(selectedContactRequest.status)}>{selectedContactRequest.status}</Badge>
+                                    </div>
+                                    <Separator />
+                                    <div>
+                                        <h3 className="font-semibold mb-2 font-headline">معلومات العميل</h3>
+                                        <div className="text-sm space-y-1 text-muted-foreground">
+                                            <p><strong className="text-foreground">الاسم:</strong> {selectedContactRequest.customer.name}</p>
+                                            <p><strong className="text-foreground">رقم الهاتف:</strong> {selectedContactRequest.customer.phone}</p>
+                                            <p><strong className="text-foreground">العنوان:</strong> {selectedContactRequest.customer.address}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </DialogContent>
+                        )}
+                        </Dialog>
                      )}
                 </CardContent>
             </Card>

@@ -57,8 +57,7 @@ service cloud.firestore {
     
     match /contact_form_entries/{contactFormEntryId} {
       allow create: if true;
-      allow get, list, update: if true; // Allow read/update for admin
-      allow delete: if false;
+      allow get, list, update, delete: if true; // Allow full access for admin
     }
 
     // Explicitly deny access to collections that are no longer in use
